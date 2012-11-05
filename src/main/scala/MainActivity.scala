@@ -1,11 +1,11 @@
 package com.android.todoapp
 
-import _root_.android.app.Activity
-import _root_.android.os.Bundle
+import android.app.Activity
+import android.os.Bundle
 
-import _root_.android.view.View;
-import _root_.android.widget.Toast;
-import _root_.android.content.Intent;
+import android.view.View;
+import android.widget.Toast;
+import android.content.Intent;
 
 class MainActivity extends Activity with TypedActivity {
 

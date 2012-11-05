@@ -1,10 +1,10 @@
 package com.android.todoapp
 
-import _root_.android.app.Activity
-import _root_.android.os.Bundle
+import android.app.Activity
+import android.os.Bundle
 
-import _root_.android.view.View;
-import _root_.android.widget.Toast;
+import android.view.View;
+import android.widget.Toast;
 
 class TasksNew extends Activity with TypedActivity {
   override def onCreate(bundle: Bundle) {
