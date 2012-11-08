@@ -31,6 +31,8 @@ class MainActivity extends Activity with TypedActivity {
     listView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
   }
 
+  override def onBackPressed() {}
+
   def addNewTaskButtonHandler(view: View) {
     startActivity(new Intent(this, classOf[TasksNew]))
   }
