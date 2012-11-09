@@ -45,7 +45,7 @@
       android:text="Due"
     />
     <Spinner
-      android:id="@+id/due"
+      android:id="@+id/due_date"
       android:layout_width="fill_parent"
       android:layout_height="wrap_content" />
 
