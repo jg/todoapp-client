@@ -21,7 +21,7 @@ class Specs extends FunSpec with ShouldMatchers with OneInstancePerTest {
   describe("Tasks") {
     val task = new Task("title")
 
-    describe("attributes") {
+    it("has created_at/updated_at attributes") {
       task.created_at = 12
       task.created_at should equal (12)
 
@@ -29,9 +29,11 @@ class Specs extends FunSpec with ShouldMatchers with OneInstancePerTest {
       task.updated_at should equal (15)
     }
 
-    describe("Tasks.list") {
-      it("should delegate to ListBuffer") {
-        Tasks.length should equal(0)
+    describe("markAsCompleted") {
+      it("should mark the task as completed") {
+        task.completed should equal(false)
+        task.markAsCompleted
+        task.completed should equal(true)
       }
     }
   }

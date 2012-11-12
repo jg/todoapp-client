@@ -4,13 +4,29 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
-  <Button
-     android:layout_height="wrap_content"
-     android:layout_width="wrap_content"
-     android:text="+"
-     android:onClick="addNewTaskButtonHandler" />
+  <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+  >
+    <Button
+       android:layout_height="wrap_content"
+       android:layout_width="wrap_content"
+       android:text="✓"
+       android:layout_alignParentLeft="true"
+       android:onClick="markTaskAsCompleteHandler"
+       android:visibility="invisible"
+       android:id="@+id/markTaskAsComplete"
+    />
+    <Button
+       android:layout_height="wrap_content"
+       android:layout_width="wrap_content"
+       android:text="+"
+       android:onClick="addNewTaskButtonHandler"
+       android:layout_alignParentRight="true"
+    />
+  </RelativeLayout>
   <ListView
-      android:id="@+id/task_list"
+      android:id="@+id/taskList"
       android:layout_width="fill_parent"
       android:layout_height="wrap_content" />
 </LinearLayout>
