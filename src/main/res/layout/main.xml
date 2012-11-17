@@ -1,13 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
+
+  <!-- Command Buttons -->
+
   <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
-    android:layout_height="wrap_content"
-  >
+    android:layout_height="wrap_content" >
     <Button
        android:layout_height="wrap_content"
        android:layout_width="wrap_content"
@@ -15,17 +18,47 @@
        android:layout_alignParentLeft="true"
        android:onClick="markTaskAsCompleteHandler"
        android:visibility="invisible"
-       android:id="@+id/markTaskAsComplete"
-    />
+       android:id="@+id/markTaskAsComplete" />
     <Button
        android:layout_height="wrap_content"
        android:layout_width="wrap_content"
        android:text="+"
        android:onClick="addNewTaskButtonHandler"
-       android:layout_alignParentRight="true"
-    />
+       android:layout_alignParentRight="true" />
   </RelativeLayout>
+
+  <!-- "Tabs" -->
+
+  <LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:weightSum="1.0">
+    <Button
+       android:layout_height="40dp"
+       android:layout_width="0dp"
+       android:layout_weight=".50"
+       android:text="incomplete"
+       android:onClick="showIncompleteTasksButtonHandler"
+       android:layout_alignParentLeft="true"
+       android:layout_alignParentBottom="true"
+       style="?android:attr/buttonStyleInset" />
+    <Button
+       android:layout_height="40dp"
+       android:layout_width="0dp"
+       android:layout_weight=".50"
+       android:text="completed"
+       android:onClick="showCompletedTasksButtonHandler"
+       android:layout_alignParentRight="true"
+       android:layout_alignParentBottom="true"
+       style="?android:attr/buttonStyleInset" />
+  </LinearLayout>
+
+  <!-- Task List -->
+
   <ListView
+      xmlns:android="http://schemas.android.com/apk/res/android"
       android:id="@+id/taskList"
       android:layout_width="fill_parent"
       android:layout_height="wrap_content" />

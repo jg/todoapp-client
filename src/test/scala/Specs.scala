@@ -28,13 +28,5 @@ class Specs extends FunSpec with ShouldMatchers with OneInstancePerTest {
       task.updated_at = 15
       task.updated_at should equal (15)
     }
-
-    describe("markAsCompleted") {
-      it("should mark the task as completed") {
-        task.completed should equal(false)
-        task.markAsCompleted
-        task.completed should equal(true)
-      }
-    }
   }
 }

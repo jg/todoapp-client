@@ -26,21 +26,18 @@ object Tasks {
   }
 
   def add(c: Context, task: Task) = {
-    taskTable(c).insert(task)
+    task.id = taskTable(c).insert(task)
+    refresh(c)
+  }
+
+  def update(c: Context, task: Task) = {
+    taskTable(c).update(task)
+    refresh(c)
+  }
+
+  def refresh(c: Context) {
     adapter(c).notifyDataSetChanged()
     adapter(c).changeCursor(taskTable(c).cursor)
   }
 
-}
-
-class TaskAdapter(context: Context, cursor: Cursor)
-  extends SimpleCursorAdapter(context,
-                              R.layout.task,
-                              cursor,
-                              Array("title"),
-                              Array(R.id.title)) {
-  def getTask(i: Integer): Task = {
-    val cursor: Cursor = getItem(i).asInstanceOf[Cursor]
-    new Task(cursor.getString(1))
-  }
 }

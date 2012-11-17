@@ -4,12 +4,11 @@ import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
 import scala.collection.mutable.ListBuffer
-import android.content.ContentValues
 import android.content.Context
 import android.database.Cursor
 
 // TODO: close the database connection, finalizer maybe?
-class TaskTable(context: Context) extends SQLiteOpenHelper(context, "tasks", null, 3) {
+class TaskTable(context: Context) extends SQLiteOpenHelper(context, "tasks", null, 5) {
   val db: SQLiteDatabase = getWritableDatabase()
 
   override def onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) = {
@@ -18,13 +17,16 @@ class TaskTable(context: Context) extends SQLiteOpenHelper(context, "tasks", nul
   }
 
   override def onCreate(db: SQLiteDatabase) = {
-    db.execSQL("create table tasks(_id integer primary key, title text, body text, created_at date, updated_at date, due date)")
+    db.execSQL("create table tasks(_id integer primary key, title text, body text, completed_at date, created_at date, updated_at date, due date)")
   }
 
   def insert(task: Task) = {
-    var values: ContentValues = new ContentValues()
-    values.put("title", task.title)
-    db.insert("tasks", null, values)
+    db.insert("tasks", null, task.contentValues())
+  }
+
+  def update(task: Task) = {
+    val whereArgs: Array[String] = Array(task.id.toString());
+    db.update("tasks", task.contentValues(), "_id = ?", whereArgs)
   }
 
   def cursor: Cursor = {
