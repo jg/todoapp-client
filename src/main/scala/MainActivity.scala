@@ -28,6 +28,18 @@ class MainActivity extends Activity with TypedActivity {
   def setContext() = context = this
 
   def initListView() = {
+    def setMarkAsCompleteButtonVisibility(listView: ListView, id: Integer) = {
+      def checkedItemCount(listView: ListView): Integer = {
+        val checkedItems: SparseBooleanArray = listView.getCheckedItemPositions()
+        Range(0, checkedItems.size()).count(i => checkedItems.valueAt(i))
+      }
+
+      val b: Button = findViewById(id).asInstanceOf[Button]
+      val count     = checkedItemCount(listView)
+
+      b.setVisibility(if (count > 0) View.VISIBLE else View.INVISIBLE)
+    }
+
     listView = findViewById(R.id.taskList).asInstanceOf[ListView]
 
     listView.setAdapter(Tasks.adapter(context))
@@ -86,18 +98,6 @@ class MainActivity extends Activity with TypedActivity {
   def adapter = listView.getAdapter().asInstanceOf[TaskAdapter]
 
   def pr(s: String) = Toast.makeText(this, s, Toast.LENGTH_SHORT).show();
-
-  def checkedItemCount(listView: ListView): Integer = {
-    val checkedItems: SparseBooleanArray = listView.getCheckedItemPositions()
-    Range(0, checkedItems.size()).count(i => checkedItems.valueAt(i))
-  }
-
-  def setMarkAsCompleteButtonVisibility(listView: ListView, id: Integer) = {
-    val b: Button = findViewById(id).asInstanceOf[Button]
-    val count     = checkedItemCount(listView)
-
-    b.setVisibility(if (count > 0) View.VISIBLE else View.INVISIBLE)
-  }
 
   override def onBackPressed() {}
 }
