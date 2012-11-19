@@ -10,6 +10,7 @@ import collection.JavaConversions._
 import android.util.SparseBooleanArray
 
 import com.android.todoapp.Utils._
+import com.android.todoapp.Implicits._
 
 class MainActivity extends Activity with TypedActivity {
   var context: Context   = _
@@ -21,55 +22,71 @@ class MainActivity extends Activity with TypedActivity {
 
     setContext()
     initListView()
+    initCommandButton(listView, R.id.commandButton)
+    initTabs()
+    adapter.showIncompleteTasks()
   }
 
   // Initializers
 
   def setContext() = context = this
 
-  def initListView() = {
-    def setMarkAsCompleteButtonVisibility(listView: ListView, id: Integer) = {
-      def checkedItemCount(listView: ListView): Integer = {
-        val checkedItems: SparseBooleanArray = listView.getCheckedItemPositions()
-        Range(0, checkedItems.size()).count(i => checkedItems.valueAt(i))
-      }
+  def initCommandButton(listView: ListView, id: Int) = {
 
-      val b: Button = findViewById(id).asInstanceOf[Button]
-      val count     = checkedItemCount(listView)
+    def initAddNewTaskButton(id: Int) = {
+      val b: Button = findViewById(id)
 
-      b.setVisibility(if (count > 0) View.VISIBLE else View.INVISIBLE)
+      b.setText("+")
+      b.setOnClickListener(onClickListener(addNewTaskButtonHandler))
     }
 
-    listView = findViewById(R.id.taskList).asInstanceOf[ListView]
+    def initMarkTasksAsCompleteButton(id: Int) = {
+      val b: Button = findViewById(id)
+
+      b.setText("✓")
+      b.setOnClickListener(onClickListener(markTaskAsCompleteHandler))
+    }
+
+    def checkedItemCount(listView: ListView): Integer = {
+      val checkedItems: SparseBooleanArray = listView.getCheckedItemPositions()
+      Range(0, checkedItems.size()).count(i => checkedItems.valueAt(i))
+    }
+
+    if (checkedItemCount(listView) > 0)
+      initMarkTasksAsCompleteButton(id)
+    else
+      initAddNewTaskButton(id)
+  }
+
+  def initListView() = {
+    listView = findViewById(R.id.taskList)
 
     listView.setAdapter(Tasks.adapter(context))
     listView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
 
     listView.setOnItemClickListener(new OnItemClickListener() {
-      override def onItemClick(adapter: AdapterView[_], view: View, position: Int, arg: Long) = {
-        setMarkAsCompleteButtonVisibility(listView, R.id.markTaskAsComplete)
-      }
+      override def onItemClick(adapter: AdapterView[_], view: View, position: Int, arg: Long) =
+        initCommandButton(listView, R.id.commandButton)
     })
+  }
+
+  def initTabs() = {
+    findViewById(R.id.showIncompleteTasksButton).
+      setOnClickListener(onClickListener(showIncompleteTasksButtonHandler))
+
+    findViewById(R.id.showCompletedTasksButton).
+      setOnClickListener(onClickListener(showCompletedTasksButtonHandler))
   }
 
   // Button handlers
 
-  def showIncompleteTasksButtonHandler(view: View) {
-    adapter.showIncompleteTasks(context)
-  }
+  def showIncompleteTasksButtonHandler(view: View) = adapter.showIncompleteTasks(context)
 
-  def showCompletedTasksButtonHandler(view: View) {
-    adapter.showCompletedTasks(context)
-  }
+  def showCompletedTasksButtonHandler(view: View) = adapter.showCompletedTasks(context)
 
   def markTaskAsCompleteHandler(view: View) {
-    def allItems(listView: ListView): Array[Task] = {
-      val adapter = listView.getAdapter().asInstanceOf[TaskAdapter]
-      Range(0, adapter.getCount()).map(i => adapter.getTask(i)).toArray
-    }
-
     def checkedItems(listView: ListView): Array[Task] = {
-      val adapter = listView.getAdapter().asInstanceOf[TaskAdapter]
+      val adapter = listView.getAdapter()
       val checkedItems: SparseBooleanArray = listView.getCheckedItemPositions()
       val checkedIndices = Range(0, checkedItems.size()).filter(i => checkedItems.valueAt(i))
 
@@ -89,13 +106,14 @@ class MainActivity extends Activity with TypedActivity {
       pr(items.length + " tasks marked as completed")
   }
 
-  def addNewTaskButtonHandler(view: View) {
-    startActivity(new Intent(this, classOf[TasksNew]))
-  }
+  def addNewTaskButtonHandler(view: View) = startActivity(new Intent(this, classOf[TasksNew]))
 
   // Utility functions
 
-  def adapter = listView.getAdapter().asInstanceOf[TaskAdapter]
+  def onClickListener(f: (View) => Unit) =
+    new View.OnClickListener() { override def onClick(v: View) = f(v) }
+
+  def adapter = listView.getAdapter()
 
   def pr(s: String) = Toast.makeText(this, s, Toast.LENGTH_SHORT).show();
 
