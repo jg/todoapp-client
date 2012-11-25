@@ -24,7 +24,7 @@ class MainActivity extends Activity with TypedActivity {
     initListView()
     initCommandButton(listView, R.id.commandButton)
     initTabs()
-    adapter.showIncompleteTasks()
+    adapter.showIncompleteTasks(context)
   }
 
   // Initializers
@@ -65,8 +65,9 @@ class MainActivity extends Activity with TypedActivity {
     listView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
 
     listView.setOnItemClickListener(new OnItemClickListener() {
-      override def onItemClick(adapter: AdapterView[_], view: View, position: Int, arg: Long) =
+      override def onItemClick(adapter: AdapterView[_], view: View, position: Int, arg: Long) = {
         initCommandButton(listView, R.id.commandButton)
+      }
     })
   }
 
