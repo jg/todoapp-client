@@ -25,6 +25,28 @@ class TasksNew extends Activity with TypedActivity {
 
   }
 
+  // Button Handlers
+
+  def saveTaskButtonHandler(view: View) {
+    val task = new Task(findViewById(R.id.title).asInstanceOf[TextView])
+    task.priority = mapPriorityToValue(getSpinnerValue(R.id.priority))
+    Tasks.add(this, task)
+    startActivity(new Intent(this, classOf[MainActivity]))
+  }
+
+  def mapPriorityToValue(priority: String): Int = priority match {
+    case "high" => 1
+    case "low" => -1
+    case _ => 0
+  }
+
+
+  // Init Code
+
+  def getSpinnerValue(id: Int): String = {
+    findViewById(id).asInstanceOf[Spinner].getSelectedView().asInstanceOf[TextView].getText().toString()
+  }
+
   def initTaskListSpinner() = initSpinnerFromResource(R.id.task_list, R.array.task_lists);
 
   def initTaskPrioritySpinner() = initSpinnerFromResource(R.id.priority, R.array.task_priorities);
@@ -52,11 +74,8 @@ class TasksNew extends Activity with TypedActivity {
     initSpinnerFromArray(R.id.due_date, labels)
   }
 
-  def saveTaskButtonHandler(view: View) {
-    val task = new Task(findViewById(R.id.title).asInstanceOf[TextView])
-    Tasks.add(this, task)
-    startActivity(new Intent(this, classOf[MainActivity]))
-  }
+
+  // Helper functions
 
   def initSpinnerFromResource(spinnerId: Integer, resource: Integer) {
     val spinner: Spinner = findViewById(spinnerId).asInstanceOf[Spinner];

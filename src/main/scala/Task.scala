@@ -8,6 +8,7 @@ class Task(_title: String) {
   var body: String = ""
   var created_at, updated_at: Long = (new java.util.Date).getTime()
   var completed_at: Option[Long] = None
+  var priority: Int = 0
   def title = _title
 
   override def toString = title
@@ -20,6 +21,7 @@ class Task(_title: String) {
     values.put("body", body)
     values.put("created_at", created_at.asInstanceOf[Double])
     values.put("updated_at", updated_at.asInstanceOf[Double])
+    values.put("priority", priority.asInstanceOf[Double])
     completed_at match {
       case Some(stuff) => values.put("completed_at", stuff.asInstanceOf[Double])
       case None => values.putNull("completed_at")

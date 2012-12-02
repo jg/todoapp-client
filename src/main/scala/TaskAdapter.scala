@@ -1,17 +1,16 @@
 package com.android.todoapp
 
 import android.content.Context
-import android.widget.{SimpleCursorAdapter}
+import android.widget.{TextView}
 import android.widget.{FilterQueryProvider}
+import android.widget.CursorAdapter
 import android.database.Cursor
+import android.view.{ViewGroup, View, LayoutInflater}
+import android.app.Activity
+import com.android.todoapp.Implicits._
+import android.graphics.Color
 
-class TaskAdapter(context: Context, cursor: Cursor)
-  extends SimpleCursorAdapter(context,
-                              R.layout.task,
-                              cursor,
-                              Array("title"),
-                              Array(R.id.title)) {
-
+class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(context, cursor) {
 
   def showIncompleteTasks(context: Context) {
     setFilterQueryProvider(new FilterQueryProvider() {
@@ -45,4 +44,28 @@ class TaskAdapter(context: Context, cursor: Cursor)
 
     task
   }
+
+  override def bindView(view: View, context: Context, cursor: Cursor) {
+    // set appropriate task priority color
+    def setTaskPriority(id: Int): Unit = {
+      val v = view.findViewById(id).asInstanceOf[View]
+      cursor.getInt(7) match {
+        case 1 => v.setBackgroundColor(Color.RED)
+        case -1 => v.setBackgroundColor(Color.BLACK)
+        case _ => v.setBackgroundColor(Color.BLUE)
+      }
+    }
+
+    view.findViewById(android.R.id.text1).asInstanceOf[TextView].setText(cursor.getString(1))
+    setTaskPriority(R.id.taskPriority)
+  }
+
+  override def newView(context: Context, cursor: Cursor, parent: ViewGroup): View = {
+    val inflater = LayoutInflater.from(context)
+    val v = inflater.inflate(R.layout.task, parent, false)
+    bindView(v, context, cursor)
+
+    v
+  }
+
 }

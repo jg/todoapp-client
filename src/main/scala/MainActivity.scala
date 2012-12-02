@@ -34,14 +34,14 @@ class MainActivity extends Activity with TypedActivity {
   def initCommandButton(listView: ListView, id: Int) = {
 
     def initAddNewTaskButton(id: Int) = {
-      val b: Button = findViewById(id)
+      val b: Button = findViewById(id).asInstanceOf[Button]
 
       b.setText("+")
       b.setOnClickListener(onClickListener(addNewTaskButtonHandler))
     }
 
     def initMarkTasksAsCompleteButton(id: Int) = {
-      val b: Button = findViewById(id)
+      val b: Button = findViewById(id).asInstanceOf[Button]
 
       b.setText("✓")
       b.setOnClickListener(onClickListener(markTaskAsCompleteHandler))
@@ -59,7 +59,7 @@ class MainActivity extends Activity with TypedActivity {
   }
 
   def initListView() = {
-    listView = findViewById(R.id.taskList)
+    listView = findViewById(R.id.taskList).asInstanceOf[ListView]
 
     listView.setAdapter(Tasks.adapter(context))
     listView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
