@@ -15,7 +15,7 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
   def showIncompleteTasks(context: Context) {
     setFilterQueryProvider(new FilterQueryProvider() {
       def runQuery(constraint: CharSequence): Cursor = {
-        (new TaskTable(context)).db.rawQuery("select * from tasks where completed_at is null", null)
+        (new TaskTable(context)).db.rawQuery("select * from tasks where completed_at is null order by priority desc", null)
       }
     })
     getFilter().filter("")
@@ -25,7 +25,7 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
   def showCompletedTasks(context: Context) {
     setFilterQueryProvider(new FilterQueryProvider() {
       def runQuery(constraint: CharSequence): Cursor = {
-        (new TaskTable(context)).db.rawQuery("select * from tasks where completed_at is not null", null)
+        (new TaskTable(context)).db.rawQuery("select * from tasks where completed_at is not null order by priority desc", null)
       }
     })
     getFilter().filter("")
@@ -51,8 +51,8 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
       val v = view.findViewById(id).asInstanceOf[View]
       cursor.getInt(7) match {
         case 1 => v.setBackgroundColor(Color.RED)
-        case -1 => v.setBackgroundColor(Color.BLACK)
-        case _ => v.setBackgroundColor(Color.BLUE)
+        case -1 => v.setBackgroundColor(Color.BLUE)
+        case _ => v.setBackgroundColor(Color.BLACK)
       }
     }
 
