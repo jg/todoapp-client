@@ -24,9 +24,10 @@ object TaskFields {
         (x: Tuple2[String,String]) => x._1 == fieldName)
 
   def getFromCursor(cursor: Cursor, fieldName: String): Option[Any] = {
+    // Use extractors here
     def fieldType(s: String) = s.split(" ").head
 
-    def getValue(f: (Int => Any)): Option[Any] = {
+    def getValue(f: Int => Any): Option[Any] = {
       try {
         val i: Int = columnIndex(fieldName)
 
