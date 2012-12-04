@@ -34,13 +34,14 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
 
   def getTask(i: Integer): Task = {
     val cursor: Cursor = getItem(i).asInstanceOf[Cursor]
-    val task = new Task(cursor.getString(1))
+    val task = new Task(cursor.getString(columnIndex("title")))
 
-    task.id = cursor.getInt(0)
-    task.body = cursor.getString(2)
-    task.completed_at = Some(cursor.getLong(3).asInstanceOf[Long])
-    task.created_at = cursor.getLong(4).asInstanceOf[Long]
-    task.updated_at = cursor.getLong(5).asInstanceOf[Long]
+    task.id           = cursor.getInt(columnIndex("_id"))
+    task.body         = cursor.getString(columnIndex("body"))
+    task.completed_at = Some(cursor.getLong(columnIndex("completed_at")))
+    task.created_at   = cursor.getLong(columnIndex("created_at"))
+    task.updated_at   = cursor.getLong(columnIndex("updated_at"))
+    task.priority     = cursor.getInt(columnIndex("priority"))
 
     task
   }
@@ -49,14 +50,15 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
     // set appropriate task priority color
     def setTaskPriority(id: Int): Unit = {
       val v = view.findViewById(id).asInstanceOf[View]
-      cursor.getInt(7) match {
+      cursor.getInt(columnIndex("priority")) match {
         case 1 => v.setBackgroundColor(Color.RED)
         case -1 => v.setBackgroundColor(Color.BLUE)
         case _ => v.setBackgroundColor(Color.BLACK)
       }
     }
 
-    view.findViewById(android.R.id.text1).asInstanceOf[TextView].setText(cursor.getString(1))
+    val title = cursor.getString(columnIndex("title"))
+    view.findViewById(android.R.id.text1).asInstanceOf[TextView].setText(title)
     setTaskPriority(R.id.taskPriority)
   }
 
@@ -67,5 +69,9 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
 
     v
   }
+
+  // Helpers
+
+  def columnIndex(fieldName: String) = TaskFields.columnIndex(fieldName)
 
 }
