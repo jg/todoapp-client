@@ -42,4 +42,12 @@ class Task(_title: String) {
     id != -1
   }
 
+  def setPriority(str: String) = {
+    this.priority = str match {
+      case "high" => 1
+      case "low" => -1
+      case _ => 0
+    }
+  }
+
 }

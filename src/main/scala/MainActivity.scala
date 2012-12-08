@@ -129,16 +129,10 @@ class MainActivity extends Activity with TypedActivity with ActivityExtensions {
   }
 
   def handleTaskTitleInputEnterKey(v: TextView, actionId: Int, event: KeyEvent) = {
-    def mapPriorityToValue(priority: String): Int = priority match {
-      case "high" => 1
-      case "low" => -1
-      case _ => 0
-    }
-
     def addNewTask() = {
       val task = new Task(findViewById(R.id.task_title_input).asInstanceOf[TextView])
       val spinner = findSpinner(R.id.priority)
-      task.priority = mapPriorityToValue(spinner.value)
+      task.setPriority(spinner.value)
       Tasks.add(this, task)
       pr("New Task Added")
     }
