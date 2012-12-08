@@ -9,9 +9,7 @@ import android.content.{Intent, Context}
 import collection.JavaConversions._
 import android.util.SparseBooleanArray
 import android.widget.ArrayAdapter
-import java.util.Calendar
-import java.util.Date
-import java.text.SimpleDateFormat
+import android.os.IBinder
 
 import com.android.todoapp.Implicits._
 import com.android.todoapp.Utils._
@@ -145,15 +143,15 @@ class MainActivity extends Activity with TypedActivity with ActivityExtensions {
       pr("New Task Added")
     }
 
-    addNewTask()
     hideTaskNewForm()
+    addNewTask()
 
     false
   }
 
   def hideTaskNewForm() = {
     findViewById(R.id.tasksNew).setVisibility(View.GONE)
-    hideKeyboard()
+    hideKeyboard(findEditText(R.id.task_title_input).getWindowToken())
   }
 
   def showNewTaskForm() = {
@@ -168,28 +166,7 @@ class MainActivity extends Activity with TypedActivity with ActivityExtensions {
 
   def initTaskPrioritySpinner(id: Int) = findSpinner(id).fromResource(R.array.task_priorities)
 
-  def initDueDateSpinner(id: Int) {
-    def weekday(date: Date): String = new SimpleDateFormat("EEEE").format(date)
-
-    def today: Date = new Date()
-
-    def addDays(date: Date, days: Integer): Date = {
-      val c: Calendar = Calendar.getInstance()
-      c.setTime(date)
-      c.add(Calendar.DATE, days)
-      c.getTime()
-    }
-
-    def labels: Array[String] = {
-      val range = 6
-      val dates = Range(0, range).map(days => addDays(today, days))
-      val labels: List[String] = List("today", "tomorrow") ::: dates.drop(2).map(weekday(_)).toList
-
-      labels.toArray[String]
-    }
-
-    findSpinner(id).fromArray(labels)
-  }
+  def initDueDateSpinner(id: Int) = findSpinner(id).asDueDateSpinner()
 
   // Utility functions
 

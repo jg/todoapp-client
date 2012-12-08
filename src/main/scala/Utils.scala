@@ -5,6 +5,7 @@ import android.app.Activity
 import android.view.{View, KeyEvent}
 import android.view.inputmethod.InputMethodManager
 import android.content.Context
+import android.os.IBinder
 
 trait Finders extends Activity {
   def findSpinner(id: Int): Spinner = findViewById(id).asInstanceOf[Spinner]
@@ -19,9 +20,9 @@ trait ActivityExtensions extends Activity with Finders {
     imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, 0)
   }
 
-  def hideKeyboard() = {
+  def hideKeyboard(windowToken: IBinder) = {
     val imm =  getSystemService(Context.INPUT_METHOD_SERVICE).asInstanceOf[InputMethodManager]
-    imm.toggleSoftInput(0, InputMethodManager.HIDE_IMPLICIT_ONLY)
+    imm.hideSoftInputFromWindow(windowToken, 0);
   }
 
 }
