@@ -1,28 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<LinearLayout
+<RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent">
 
   <!-- Command Buttons -->
 
-  <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="fill_parent"
-    android:layout_height="wrap_content" >
-    <Button
-       android:id="@+id/commandButton"
-       android:layout_height="wrap_content"
-       android:layout_width="wrap_content"
-       android:text="+"
-       android:onClick="addNewTaskButtonHandler"
-       android:layout_alignParentRight="true" />
-  </RelativeLayout>
+  <Button
+     android:id="@+id/commandButton"
+     android:layout_height="wrap_content"
+     android:layout_width="wrap_content"
+     android:text="+"
+     android:onClick="addNewTaskButtonHandler"
+     android:layout_alignParentRight="true" />
 
   <!-- "Tabs" -->
 
   <LinearLayout
+    android:id="@+id/tabs"
+    android:layout_below="@+id/commandButton"
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="horizontal"
     android:layout_width="fill_parent"
@@ -53,8 +50,58 @@
   <!-- Task List -->
 
   <ListView
+      android:layout_below="@+id/tabs"
       xmlns:android="http://schemas.android.com/apk/res/android"
       android:id="@+id/taskList"
       android:layout_width="fill_parent"
       android:layout_height="wrap_content" />
-</LinearLayout>
+
+  <!-- Task New Form -->
+
+  <FrameLayout
+    android:id="@+id/tasksNew"
+    android:visibility="gone"
+    android:background="#FFBFB4B8"
+    android:foregroundGravity="top"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <RelativeLayout
+      android:layout_width="fill_parent"
+      android:layout_height="120dp"
+      xmlns:android="http://schemas.android.com/apk/res/android">
+      <EditText
+          android:id="@+id/task_title_input"
+          android:inputType="text"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="16dp"
+          android:layout_marginLeft="4dp"
+          android:layout_marginRight="4dp"
+          android:layout_marginBottom="4dp"
+          android:hint="New Task Title" />
+
+      <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+          android:orientation="horizontal"
+          android:layout_below="@+id/task_title_input"
+          android:layout_width="fill_parent"
+          android:layout_height="wrap_content">
+
+        <com.android.todoapp.Spinner
+          android:id="@+id/task_list"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content" />
+        <com.android.todoapp.Spinner
+          android:id="@+id/priority"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content" />
+        <com.android.todoapp.Spinner
+          android:id="@+id/due_date"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content" />
+
+      </LinearLayout>
+    </RelativeLayout>
+  </FrameLayout>
+
+</RelativeLayout>

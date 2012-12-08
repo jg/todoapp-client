@@ -2,17 +2,21 @@ package com.android.todoapp
 
 import android.app.Activity
 import android.os.Bundle
-import android.view.{View, LayoutInflater}
+import android.view.{View, LayoutInflater, KeyEvent}
 import android.widget.{Toast, ListView, Button, AdapterView, TextView}
 import android.widget.AdapterView.{OnItemClickListener, OnItemSelectedListener}
 import android.content.{Intent, Context}
 import collection.JavaConversions._
 import android.util.SparseBooleanArray
+import android.widget.ArrayAdapter
+import java.util.Calendar
+import java.util.Date
+import java.text.SimpleDateFormat
 
-import com.android.todoapp.Utils._
 import com.android.todoapp.Implicits._
+import com.android.todoapp.Utils._
 
-class MainActivity extends Activity with TypedActivity {
+class MainActivity extends Activity with TypedActivity with ActivityExtensions {
   var context: Context   = _
   var listView: ListView = _
 
@@ -25,6 +29,8 @@ class MainActivity extends Activity with TypedActivity {
     initCommandButton(listView, R.id.commandButton)
     initTabs()
     adapter.showIncompleteTasks(context)
+
+    initAddNewTaskView()
   }
 
   // Initializers
@@ -34,14 +40,14 @@ class MainActivity extends Activity with TypedActivity {
   def initCommandButton(listView: ListView, id: Int) = {
 
     def initAddNewTaskButton(id: Int) = {
-      val b: Button = findViewById(id).asInstanceOf[Button]
+      val b = findButton(id)
 
       b.setText("+")
       b.setOnClickListener(onClickListener(addNewTaskButtonHandler))
     }
 
     def initMarkTasksAsCompleteButton(id: Int) = {
-      val b: Button = findViewById(id).asInstanceOf[Button]
+      val b = findButton(id)
 
       b.setText("✓")
       b.setOnClickListener(onClickListener(markTaskAsCompleteHandler))
@@ -59,7 +65,7 @@ class MainActivity extends Activity with TypedActivity {
   }
 
   def initListView() = {
-    listView = findViewById(R.id.taskList).asInstanceOf[ListView]
+    listView = findListView(R.id.taskList)
 
     listView.setAdapter(Tasks.adapter(context))
     listView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
@@ -80,6 +86,8 @@ class MainActivity extends Activity with TypedActivity {
   }
 
   // Button handlers
+
+  override def onBackPressed() = hideTaskNewForm()
 
   def showIncompleteTasksButtonHandler(view: View) = adapter.showIncompleteTasks(context)
 
@@ -107,16 +115,88 @@ class MainActivity extends Activity with TypedActivity {
       pr(items.length + " tasks marked as completed")
   }
 
-  def addNewTaskButtonHandler(view: View) = startActivity(new Intent(this, classOf[TasksNew]))
+  def addNewTaskButtonHandler(view: View) = {
+    showNewTaskForm()
+  }
+
+  // Add Task Init Code
+
+  def initAddNewTaskView() = {
+    initTaskPrioritySpinner(R.id.priority)
+    initTaskListSpinner(R.id.task_list)
+    initDueDateSpinner(R.id.due_date)
+
+    val input = findViewById(R.id.task_title_input).asInstanceOf[TextView]
+    input.setOnEditorActionListener(onEditorActionListener(handleTaskTitleInputEnterKey))
+  }
+
+  def handleTaskTitleInputEnterKey(v: TextView, actionId: Int, event: KeyEvent) = {
+    def mapPriorityToValue(priority: String): Int = priority match {
+      case "high" => 1
+      case "low" => -1
+      case _ => 0
+    }
+
+    def addNewTask() = {
+      val task = new Task(findViewById(R.id.task_title_input).asInstanceOf[TextView])
+      val spinner = findSpinner(R.id.priority)
+      task.priority = mapPriorityToValue(spinner.value)
+      Tasks.add(this, task)
+      pr("New Task Added")
+    }
+
+    addNewTask()
+    hideTaskNewForm()
+
+    false
+  }
+
+  def hideTaskNewForm() = {
+    findViewById(R.id.tasksNew).setVisibility(View.GONE)
+    hideKeyboard()
+  }
+
+  def showNewTaskForm() = {
+    findViewById(R.id.tasksNew).setVisibility(View.VISIBLE)
+    val input = findEditText(R.id.task_title_input)
+    input.setText("")
+    input.requestFocus()
+    showKeyboard()
+  }
+
+  def initTaskListSpinner(id: Int) = findSpinner(id).fromResource(R.array.task_lists)
+
+  def initTaskPrioritySpinner(id: Int) = findSpinner(id).fromResource(R.array.task_priorities)
+
+  def initDueDateSpinner(id: Int) {
+    def weekday(date: Date): String = new SimpleDateFormat("EEEE").format(date)
+
+    def today: Date = new Date()
+
+    def addDays(date: Date, days: Integer): Date = {
+      val c: Calendar = Calendar.getInstance()
+      c.setTime(date)
+      c.add(Calendar.DATE, days)
+      c.getTime()
+    }
+
+    def labels: Array[String] = {
+      val range = 6
+      val dates = Range(0, range).map(days => addDays(today, days))
+      val labels: List[String] = List("today", "tomorrow") ::: dates.drop(2).map(weekday(_)).toList
+
+      labels.toArray[String]
+    }
+
+    findSpinner(id).fromArray(labels)
+  }
 
   // Utility functions
-
-  def onClickListener(f: (View) => Unit) =
-    new View.OnClickListener() { override def onClick(v: View) = f(v) }
 
   def adapter = listView.getAdapter()
 
   def pr(s: String) = Toast.makeText(this, s, Toast.LENGTH_SHORT).show();
 
-  override def onBackPressed() {}
+
+
 }
