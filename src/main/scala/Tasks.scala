@@ -7,36 +7,29 @@ import android.database.Cursor
 
 object Tasks {
   private[this] var adapter: Option[TaskAdapter] = None
-  private[this] var taskTable: Option[TaskTable] = None
 
   def adapter(context: Context): TaskAdapter = adapter match {
     case Some(taskAdapter) => taskAdapter
     case None => {
-      adapter = Some(new TaskAdapter(context, taskTable(context).cursor))
+      adapter = Some(new TaskAdapter(context, TaskTable(context).cursor))
       adapter.get
     }
   }
 
-  def taskTable(c: Context): TaskTable = taskTable match {
-    case Some(taskTable) => taskTable
-    case None => {
-      taskTable = Some(new TaskTable(c))
-      taskTable.get
-    }
-  }
-
   def add(c: Context, task: Task) = {
-    task.id = taskTable(c).insert(task)
+    task.id = TaskTable(c).insert(task)
     refresh(c)
   }
 
   def update(c: Context, task: Task) = {
-    taskTable(c).update(task)
+    TaskTable(c).update(task)
     refresh(c)
   }
 
   def refresh(c: Context) {
-    adapter(c).refresh()
+    adapter(c).notifyDataSetChanged()
+    adapter(c).changeCursor(TaskTable(c).cursor)
+    adapter(c).getFilter().filter("")
   }
 
 }

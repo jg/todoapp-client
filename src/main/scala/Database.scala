@@ -29,7 +29,14 @@ object TaskFields {
   def toSQL() = fieldMap.map((x) => x._1 + " " + x._2).mkString(", ")
 }
 
-// TODO: close the database connection, finalizer maybe?
+
+object TaskTable {
+  def apply(context: Context) = {
+    Log.i("TaskTable constructor invoked")
+    new TaskTable(context)
+  }
+}
+
 class TaskTable(context: Context) extends SQLiteOpenHelper(context, "tasks", null, 9) {
   val db: SQLiteDatabase = getWritableDatabase()
 
@@ -56,6 +63,4 @@ class TaskTable(context: Context) extends SQLiteOpenHelper(context, "tasks", nul
   def cursor: Cursor = {
     db.query("tasks", null, null, null, null, null, null)
   }
-
-
 }

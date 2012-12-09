@@ -3,7 +3,7 @@ package com.android.todoapp
 import android.app.Activity
 import android.os.Bundle
 import android.view.{View, LayoutInflater, KeyEvent}
-import android.widget.{Toast, ListView, Button, AdapterView, TextView}
+import android.widget.{Toast, ListView, Button, AdapterView, TextView, CheckedTextView}
 import android.widget.AdapterView.{OnItemClickListener, OnItemSelectedListener}
 import android.content.{Intent, Context}
 import collection.JavaConversions._
@@ -31,6 +31,10 @@ class MainActivity extends Activity with TypedActivity with ActivityExtensions {
     initAddNewTaskView()
   }
 
+  override def onDestroy() {
+    TaskTable(this).close()
+  }
+
   // Initializers
 
   def setContext() = context = this
@@ -42,6 +46,7 @@ class MainActivity extends Activity with TypedActivity with ActivityExtensions {
 
       b.setText("+")
       b.setOnClickListener(onClickListener(addNewTaskButtonHandler))
+      Log.i("initialized command button as AddNewTaskButton")
     }
 
     def initMarkTasksAsCompleteButton(id: Int) = {
@@ -49,6 +54,7 @@ class MainActivity extends Activity with TypedActivity with ActivityExtensions {
 
       b.setText("✓")
       b.setOnClickListener(onClickListener(markTaskAsCompleteHandler))
+      Log.i("initialized command button as markTaskAsCompleteButton")
     }
 
     def checkedItemCount(listView: ListView): Integer = {
@@ -85,6 +91,9 @@ class MainActivity extends Activity with TypedActivity with ActivityExtensions {
 
   // Button handlers
 
+  def unCheckAllItems(v: View) =
+    for (i <- 0 to listView.getCount()) listView.setItemChecked(i, false)
+
   override def onBackPressed() = hideTaskNewForm()
 
   def showIncompleteTasksButtonHandler(view: View) = adapter.showIncompleteTasks(context)
@@ -106,11 +115,15 @@ class MainActivity extends Activity with TypedActivity with ActivityExtensions {
     }
 
     val items = checkedItems(listView).map(markTask(this,  _))
+    Tasks.refresh(this)
 
     if (items.length == 1)
       pr("task marked as completed")
     else
       pr(items.length + " tasks marked as completed")
+
+    unCheckAllItems(listView)
+    initCommandButton(listView, R.id.commandButton)
   }
 
   def addNewTaskButtonHandler(view: View) = {

@@ -70,12 +70,6 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
     v
   }
 
-  def refresh() = {
-    notifyDataSetChanged()
-    changeCursor(taskTable(c).cursor)
-    getFilter().filter("")
-  }
-
   // Helpers
 
   def columnIndex(fieldName: String) = TaskFields.columnIndex(fieldName)
