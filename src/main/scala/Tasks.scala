@@ -28,7 +28,6 @@ object Tasks {
 
   def refresh(c: Context) {
     adapter(c).notifyDataSetChanged()
-    adapter(c).changeCursor(TaskTable(c).cursor)
     adapter(c).getFilter().filter("")
   }
 
