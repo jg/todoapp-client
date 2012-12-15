@@ -60,14 +60,20 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
 
     def setTaskDueDate(id: Int) = {
       val v = view.findViewById(id).asInstanceOf[TextView]
-      val date = Date.parse(cursor.getString(columnIndex("due_date")))
+      val date = Date.parse(cursor.getString(Task.columnIndex("due_date")))
       v.setText(date.dayMonthFormat)
+    }
+
+    def setTaskList(id: Int) = {
+      val v = view.findViewById(id).asInstanceOf[TextView]
+      v.setText(cursor.getString(Task.columnIndex("task_list")))
     }
 
     val title = cursor.getString(columnIndex("title"))
     view.findViewById(android.R.id.text1).asInstanceOf[TextView].setText(title)
     setTaskPriority(R.id.taskPriority)
     setTaskDueDate(R.id.dueDate)
+    setTaskList(R.id.taskList)
   }
 
   override def newView(context: Context, cursor: Cursor, parent: ViewGroup): View = {

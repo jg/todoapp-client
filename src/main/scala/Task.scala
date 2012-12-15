@@ -12,6 +12,7 @@ object Task {
     "updated_at"   -> "string",
     "created_at"   -> "string",
     "due_date"     -> "string",
+    "task_list"    -> "string",
     "priority"     -> "integer"
   )
 
@@ -33,6 +34,7 @@ object Task {
 class Task(_title: String) {
   var id: Long = -1
   var created_at, due_date, updated_at: String = Date.today.toString()
+  var task_list: String = ""
   var completed_at: Option[String] = None
   var priority: Int = 0
   def title = _title
@@ -44,6 +46,7 @@ class Task(_title: String) {
   def contentValues(): ContentValues = {
     var values = new ContentValues()
     values.put("title", title)
+    values.put("task_list", task_list)
     values.put("created_at", created_at)
     values.put("updated_at", updated_at)
     values.put("due_date", due_date)

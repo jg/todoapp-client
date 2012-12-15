@@ -132,7 +132,7 @@ class MainActivity extends Activity with TypedActivity with ActivityExtensions {
 
   def initAddNewTaskView() = {
     initTaskPrioritySpinner(R.id.priority)
-    initTaskListSpinner(R.id.task_list)
+    initTaskListSpinner(R.id.taskListSpinner)
     initDueDateSpinner(R.id.due_date)
 
     val input = findViewById(R.id.task_title_input).asInstanceOf[TextView]
@@ -146,12 +146,15 @@ class MainActivity extends Activity with TypedActivity with ActivityExtensions {
       Date.parse(spinner.value).toString()
     }
 
+    def taskList = findSpinner(R.id.taskListSpinner).value
+
     def addNewTask() = {
       val task = new Task(findViewById(R.id.task_title_input).asInstanceOf[TextView])
       val spinner = findSpinner(R.id.priority)
 
       task.setPriority(spinner.value)
       task.due_date = dueDate()
+      task.task_list = taskList
       Tasks.add(this, task)
       pr("New Task Added")
     }
