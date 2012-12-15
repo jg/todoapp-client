@@ -46,7 +46,6 @@ class MainActivity extends Activity with TypedActivity with ActivityExtensions {
 
       b.setText("+")
       b.setOnClickListener(onClickListener(addNewTaskButtonHandler))
-      Log.i("initialized command button as AddNewTaskButton")
     }
 
     def initMarkTasksAsCompleteButton(id: Int) = {
@@ -54,7 +53,6 @@ class MainActivity extends Activity with TypedActivity with ActivityExtensions {
 
       b.setText("✓")
       b.setOnClickListener(onClickListener(markTaskAsCompleteHandler))
-      Log.i("initialized command button as markTaskAsCompleteButton")
     }
 
     def checkedItemCount(listView: ListView): Integer = {
