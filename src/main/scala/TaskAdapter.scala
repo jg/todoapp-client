@@ -12,10 +12,11 @@ import android.graphics.Color
 
 class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(context, cursor) {
 
+  // TODO: this smells
   def showIncompleteTasks(context: Context) {
     setFilterQueryProvider(new FilterQueryProvider() {
       def runQuery(constraint: CharSequence): Cursor = {
-        (new TaskTable(context)).db.rawQuery("select * from tasks where completed_at is null order by priority desc", null)
+        (new TaskTable(context)).db.rawQuery("select * from tasks where completed_at is null order by due_date asc, priority desc", null)
       }
     })
     getFilter().filter("")
@@ -25,7 +26,7 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
   def showCompletedTasks(context: Context) {
     setFilterQueryProvider(new FilterQueryProvider() {
       def runQuery(constraint: CharSequence): Cursor = {
-        (new TaskTable(context)).db.rawQuery("select * from tasks where completed_at is not null order by priority desc", null)
+        (new TaskTable(context)).db.rawQuery("select * from tasks where completed_at is not null order by due_date asc, priority desc", null)
       }
     })
     getFilter().filter("")
