@@ -70,4 +70,14 @@ class Date(date: DateTime) {
 
   def weekday = DateTimeFormat.forPattern("EEEE").print(date).toLowerCase
 
+  def isToday = {
+    val fmt = DateTimeFormat.forPattern("yyyy-MM-dd")
+    fmt.print(date) == fmt.print(new DateTime())
+  }
+
+  def isTomorrow = {
+    val fmt = DateTimeFormat.forPattern("yyyy-MM-dd")
+    fmt.print(date) == fmt.print(new DateTime() + 1.day)
+  }
+
 }
