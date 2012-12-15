@@ -5,7 +5,7 @@ import org.joda.time.format.DateTimeFormat
 import org.joda.time.DateTimeConstants
 
 object Today { def unapply(s: String): Boolean = s.matches("[Tt]oday") }
-object Tomorrow { def unapply(s: String): Boolean = s.matches("[Tt]morrow") }
+object Tomorrow { def unapply(s: String): Boolean = s.matches("[Tt]omorrow") }
 object Monday { def unapply(s: String): Boolean = s.matches("[Mm]onday") }
 object Tuesday { def unapply(s: String): Boolean = s.matches("[Tt]uesday") }
 object Wednesday { def unapply(s: String): Boolean = s.matches("[Ww]ednesday") }
@@ -35,6 +35,7 @@ object Date {
     case Saturday()  => Date.saturday
     case Sunday()    => Date.sunday
     case StandardFormat(date) => date
+    case _ => throw new RuntimeException("Could not parse date: " + s)
   }
 
   def fromToday(n: Int) = new Date(new DateTime() + n.days)
