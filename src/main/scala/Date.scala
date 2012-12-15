@@ -13,11 +13,20 @@ object Thursday { def unapply(s: String): Boolean = s.matches("[tT]hursday") }
 object Friday { def unapply(s: String): Boolean = s.matches("[fF]riday") }
 object Saturday { def unapply(s: String): Boolean = s.matches("[sS]aturday") }
 object Sunday { def unapply(s: String): Boolean = s.matches("[sS]unday") }
+object StandardFormat {
+  def unapply(s: String): Option[Date] = {
+    try {
+      Some(new Date(DateTimeFormat.forPattern("yyyy-MM-dd").parseDateTime(s)))
+    } catch {
+      case ex: IllegalArgumentException => None
+    }
+  }
+}
 
 object Date {
-  def parse(s: String) = s match {
-    case Today()     => Date.today
-    case Tomorrow()  => Date.fromToday(1)
+  def parse(s: String): Date = s match {
+    case Today()     => new Date(new DateTime())
+    case Tomorrow()  => new Date(new DateTime()+1.day)
     case Monday()    => Date.monday
     case Tuesday()   => Date.tuesday
     case Wednesday() => Date.wednesday
@@ -25,15 +34,17 @@ object Date {
     case Friday()    => Date.friday
     case Saturday()  => Date.saturday
     case Sunday()    => Date.sunday
+    case StandardFormat(date) => date
   }
 
-  def fromToday(n: Int) = new DateTime() + n.days
+  def fromToday(n: Int) = new Date(new DateTime() + n.days)
 
   def today = fromToday(0)
+
   def tomorrow = fromToday(1)
 
-
   def dayOfWeek(weekday: Int) = {
+    val today = new DateTime()
     if (today > today.withDayOfWeek(weekday)) {
       // we're already past the given weekday in the week
       val week = today.weekOfWeekyear().get()
@@ -48,8 +59,14 @@ object Date {
   def friday    = dayOfWeek(DateTimeConstants.FRIDAY)
   def saturday  = dayOfWeek(DateTimeConstants.SATURDAY)
   def sunday    = dayOfWeek(DateTimeConstants.SUNDAY)
+
 }
 
 class Date(date: DateTime) {
   override def toString = DateTimeFormat.forPattern("yyyy-MM-dd").print(date)
+
+  def dayMonthFormat = DateTimeFormat.forPattern("dd MMM").print(date)
+
+  def weekday = DateTimeFormat.forPattern("EEEE").print(date).toLowerCase
+
 }

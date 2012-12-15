@@ -2,28 +2,54 @@ package com.android.todoapp
 
 import android.content.ContentValues
 import android.content.Context
+import scala.collection.mutable.LinkedHashMap
+
+object Task {
+  val fieldMap = LinkedHashMap(
+    "_id"          -> "integer primary key",
+    "title"        -> "string",
+    "completed_at" -> "string",
+    "updated_at"   -> "string",
+    "created_at"   -> "string",
+    "due_date"     -> "string",
+    "priority"     -> "integer"
+  )
+
+  def columnIndex(fieldName: String): Int = {
+    val index = fieldMap.toIndexedSeq.indexWhere(
+      (x: Tuple2[String,String]) => x._1 == fieldName
+    )
+
+    if (index != -1)
+      index
+    else
+      throw new Exception("Field name " + fieldName + " not found in the fieldmap")
+  }
+
+  def toSQL() = fieldMap.map((x) => x._1 + " " + x._2).mkString(", ")
+
+}
 
 class Task(_title: String) {
   var id: Long = -1
-  var body: String = ""
-  var created_at, updated_at: Long = (new java.util.Date).getTime()
-  var completed_at: Option[Long] = None
+  var created_at, due_date, updated_at: String = Date.today.toString()
+  var completed_at: Option[String] = None
   var priority: Int = 0
   def title = _title
 
   override def toString = title
 
-  def markAsCompleted() = completed_at = Some((new java.util.Date).getTime())
+  def markAsCompleted() = completed_at = Some(Date.today.toString())
 
   def contentValues(): ContentValues = {
     var values = new ContentValues()
     values.put("title", title)
-    values.put("body", body)
-    values.put("created_at", created_at.asInstanceOf[Double])
-    values.put("updated_at", updated_at.asInstanceOf[Double])
-    values.put("priority", priority.asInstanceOf[Double])
+    values.put("created_at", created_at)
+    values.put("updated_at", updated_at)
+    values.put("due_date", due_date)
+    values.put("priority", priority: Integer)
     completed_at match {
-      case Some(stuff) => values.put("completed_at", stuff.asInstanceOf[Double])
+      case Some(date) => values.put("completed_at", date)
       case None => values.putNull("completed_at")
     }
 

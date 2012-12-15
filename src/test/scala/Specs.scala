@@ -5,6 +5,7 @@ import org.scalatest.OneInstancePerTest
 import android.content.Context
 
 class Specs extends FunSpec with ShouldMatchers with OneInstancePerTest {
+  /*
   describe("Task") {
     val task = new Task("title")
 
@@ -29,4 +30,5 @@ class Specs extends FunSpec with ShouldMatchers with OneInstancePerTest {
       task.updated_at should equal (15)
     }
   }
+  */
 }

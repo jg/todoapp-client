@@ -140,10 +140,18 @@ class MainActivity extends Activity with TypedActivity with ActivityExtensions {
   }
 
   def handleTaskTitleInputEnterKey(v: TextView, actionId: Int, event: KeyEvent) = {
+    def dueDate() = {
+      val spinner = findSpinner(R.id.due_date)
+
+      Date.parse(spinner.value).toString()
+    }
+
     def addNewTask() = {
       val task = new Task(findViewById(R.id.task_title_input).asInstanceOf[TextView])
       val spinner = findSpinner(R.id.priority)
+
       task.setPriority(spinner.value)
+      task.due_date = dueDate()
       Tasks.add(this, task)
       pr("New Task Added")
     }

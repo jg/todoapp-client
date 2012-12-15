@@ -4,8 +4,6 @@ import android.widget.ArrayAdapter
 import android.util.AttributeSet
 import android.widget.TextView
 import java.util.Calendar
-import java.util.Date
-import java.text.SimpleDateFormat
 
 class Spinner(context: Context, attrs: AttributeSet) extends android.widget.Spinner(context, attrs) {
   def fromResource(resource: Int) = {
@@ -29,21 +27,10 @@ class Spinner(context: Context, attrs: AttributeSet) extends android.widget.Spin
     getSelectedView().asInstanceOf[TextView].getText().toString()
 
   def asDueDateSpinner() = {
-    def weekday(date: Date): String = new SimpleDateFormat("EEEE").format(date)
-
-    def today: Date = new Date()
-
-    def addDays(date: Date, days: Integer): Date = {
-      val c: Calendar = Calendar.getInstance()
-      c.setTime(date)
-      c.add(Calendar.DATE, days)
-      c.getTime()
-    }
-
     def labels: Array[String] = {
       val range = 6
-      val dates = Range(0, range).map(days => addDays(today, days))
-      val labels: List[String] = List("today", "tomorrow") ::: dates.drop(2).map(weekday(_)).toList
+      val dates = Range(0, range).map(days => Date.fromToday(days))
+      val labels: List[String] = List("today", "tomorrow") ::: dates.drop(2).map(_.weekday).toList
 
       labels.toArray[String]
     }

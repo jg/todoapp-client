@@ -9,8 +9,6 @@ import android.view.{ViewGroup, View, LayoutInflater}
 import android.app.Activity
 import com.android.todoapp.Implicits._
 import android.graphics.Color
-import java.util.Date
-import java.text.SimpleDateFormat
 
 class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(context, cursor) {
 
@@ -35,14 +33,15 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
   }
 
   def getTask(i: Integer): Task = {
+    // TODO: refactor Task#fromCursor?
     val cursor: Cursor = getItem(i).asInstanceOf[Cursor]
     val task = new Task(cursor.getString(columnIndex("title")))
 
     task.id           = cursor.getInt(columnIndex("_id"))
-    task.body         = cursor.getString(columnIndex("body"))
-    task.completed_at = Some(cursor.getLong(columnIndex("completed_at")))
-    task.created_at   = cursor.getLong(columnIndex("created_at"))
-    task.updated_at   = cursor.getLong(columnIndex("updated_at"))
+    task.completed_at = Some(cursor.getString(columnIndex("completed_at")))
+    task.created_at   = cursor.getString(columnIndex("created_at"))
+    task.updated_at   = cursor.getString(columnIndex("updated_at"))
+    task.due_date     = cursor.getString(columnIndex("due_date"))
     task.priority     = cursor.getInt(columnIndex("priority"))
 
     task
@@ -61,9 +60,8 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
 
     def setTaskDueDate(id: Int) = {
       val v = view.findViewById(id).asInstanceOf[TextView]
-      val date = new Date(cursor.getLong(columnIndex("due")))
-      val fmtDate = new SimpleDateFormat("MMM d").format(date)
-      v.setText(fmtDate)
+      val date = Date.parse(cursor.getString(columnIndex("due_date")))
+      v.setText(date.dayMonthFormat)
     }
 
     val title = cursor.getString(columnIndex("title"))
@@ -82,6 +80,6 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
 
   // Helpers
 
-  def columnIndex(fieldName: String) = TaskFields.columnIndex(fieldName)
+  def columnIndex(fieldName: String) = Task.columnIndex(fieldName)
 
 }
