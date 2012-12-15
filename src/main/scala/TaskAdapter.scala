@@ -9,6 +9,8 @@ import android.view.{ViewGroup, View, LayoutInflater}
 import android.app.Activity
 import com.android.todoapp.Implicits._
 import android.graphics.Color
+import java.util.Date
+import java.text.SimpleDateFormat
 
 class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(context, cursor) {
 
@@ -49,7 +51,7 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
   override def bindView(view: View, context: Context, cursor: Cursor) {
     // set appropriate task priority color
     def setTaskPriority(id: Int): Unit = {
-      val v = view.findViewById(id).asInstanceOf[View]
+      val v = view.findViewById(id)
       cursor.getInt(columnIndex("priority")) match {
         case 1 => v.setBackgroundColor(Color.RED)
         case -1 => v.setBackgroundColor(Color.BLUE)
@@ -57,9 +59,17 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
       }
     }
 
+    def setTaskDueDate(id: Int) = {
+      val v = view.findViewById(id).asInstanceOf[TextView]
+      val date = new Date(cursor.getLong(columnIndex("due")))
+      val fmtDate = new SimpleDateFormat("MMM d").format(date)
+      v.setText(fmtDate)
+    }
+
     val title = cursor.getString(columnIndex("title"))
     view.findViewById(android.R.id.text1).asInstanceOf[TextView].setText(title)
     setTaskPriority(R.id.taskPriority)
+    setTaskDueDate(R.id.dueDate)
   }
 
   override def newView(context: Context, cursor: Cursor, parent: ViewGroup): View = {

@@ -1,18 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<com.android.todoapp.CheckableLinearLayout
+<com.android.todoapp.CheckableRelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="horizontal"
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent">
+    android:layout_height="60dp">
 
-  <View
+    <View
+      android:layout_alignParentLeft="true"
       android:id="@+id/taskPriority"
       android:layout_width="3dp"
       android:layout_height="fill_parent"
       android:background="#E61923" />
 
-  <CheckedTextView
+    <CheckedTextView
+      android:layout_toRightOf="@id/taskPriority"
       xmlns:android="http://schemas.android.com/apk/res/android"
       android:id="@android:id/text1"
       android:layout_width="fill_parent"
@@ -23,4 +24,13 @@
       android:paddingLeft="6dip"
       android:paddingRight="6dip" />
 
-</com.android.todoapp.CheckableLinearLayout>
+    <TextView
+      android:layout_centerVertical="true"
+      android:layout_alignParentRight="true"
+      android:layout_marginRight="9dip"
+      android:id="@+id/dueDate"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      xmlns:android="http://schemas.android.com/apk/res/android" />
+
+</com.android.todoapp.CheckableRelativeLayout>
