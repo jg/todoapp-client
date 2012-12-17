@@ -4,6 +4,7 @@ import android.widget.{TextView, Button, ListView, ListAdapter}
 import android.view.{View, KeyEvent}
 
 object Implicits {
+  implicit def date2long(d: Date): Long = d.getMillis
   implicit def textViewToString(tv: TextView): String = tv.getText.toString
   implicit def listAdapterToTaskAdapter(v: ListAdapter): TaskAdapter = v.asInstanceOf[TaskAdapter]
 
@@ -12,4 +13,5 @@ object Implicits {
       f(v, actionId, event)
     }
   }
+
 }

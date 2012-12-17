@@ -31,11 +31,14 @@ object Task {
 
 }
 
-class Task(_title: String) {
+class Task(val _title: String, val task_list: String) {
   var id: Long = -1
-  var created_at, due_date, updated_at: String = Date.today.toString()
-  var task_list: String = ""
   var completed_at: Option[String] = None
+
+  var created_at = Date.now
+  var updated_at = Date.now
+
+  var due_date = Date.today.toString()
   var priority: Int = 0
   def title = _title
 

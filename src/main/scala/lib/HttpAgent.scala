@@ -8,7 +8,6 @@ import org.apache.http.impl.client.{BasicResponseHandler, DefaultHttpClient}
 import org.apache.http.util.EntityUtils
 import org.apache.http.HttpException
 import java.io.IOException
-import android.util.Log
 import java.net.UnknownHostException
 import java.lang.StringBuilder
 import java.io.{InputStreamReader, BufferedReader, InputStream}
@@ -30,8 +29,8 @@ object HttpAgent {
       val response    = httpclient.execute(httpget)
       statusCode     = response.getStatusLine().getStatusCode()
 
-      Log.i(TAG, "executing request: " + requestLine)
-      Log.i(TAG, "response status: " + Integer.toString(statusCode))
+      Log.i("executing request: " + requestLine)
+      Log.i("response status: " + Integer.toString(statusCode))
 
       val entity = response.getEntity()
       val s      = entity.getContent()
@@ -39,11 +38,11 @@ object HttpAgent {
       inputStreamToString(s)
     } catch {
       case e: UnknownHostException => {
-        Log.e(TAG, e.toString())
+        Log.i(e.toString())
         "Could not resolve host"
       }
       case e: IOException => {
-        Log.e(TAG, e.toString())
+        Log.i(e.toString())
         e.toString()
       }
     } finally {

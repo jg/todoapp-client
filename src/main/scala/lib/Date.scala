@@ -24,6 +24,8 @@ object StandardFormat {
 }
 
 object Date {
+  implicit def date2long(d: Date): java.lang.Long = d.getMillis
+
   def parse(s: String): Date = s match {
     case Today()     => new Date(new DateTime())
     case Tomorrow()  => new Date(new DateTime()+1.day)
@@ -37,6 +39,8 @@ object Date {
     case StandardFormat(date) => date
     case _ => throw new RuntimeException("Could not parse date: " + s)
   }
+
+  def fromMillis(millis: Long) = new Date(new DateTime(millis))
 
   def fromToday(n: Int) = new Date(new DateTime() + n.days)
 
@@ -61,7 +65,10 @@ object Date {
   def saturday  = dayOfWeek(DateTimeConstants.SATURDAY)
   def sunday    = dayOfWeek(DateTimeConstants.SUNDAY)
 
+  def now = new Date(new DateTime())
+
 }
+
 
 class Date(date: DateTime) {
   override def toString = DateTimeFormat.forPattern("yyyy-MM-dd").print(date)
@@ -79,5 +86,7 @@ class Date(date: DateTime) {
     val fmt = DateTimeFormat.forPattern("yyyy-MM-dd")
     fmt.print(date) == fmt.print(new DateTime() + 1.day)
   }
+
+  def getMillis = date.getMillis()
 
 }

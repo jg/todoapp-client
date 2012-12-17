@@ -36,12 +36,15 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
   def getTask(i: Integer): Task = {
     // TODO: refactor Task#fromCursor?
     val cursor: Cursor = getItem(i).asInstanceOf[Cursor]
-    val task = new Task(cursor.getString(columnIndex("title")))
+    val title = cursor.getString(columnIndex("title"))
+    val taskList = cursor.getString(columnIndex("task_list"))
+
+    val task = new Task(title, taskList)
 
     task.id           = cursor.getInt(columnIndex("_id"))
     task.completed_at = Some(cursor.getString(columnIndex("completed_at")))
-    task.created_at   = cursor.getString(columnIndex("created_at"))
-    task.updated_at   = cursor.getString(columnIndex("updated_at"))
+    task.created_at   = Date.fromMillis(cursor.getLong(columnIndex("created_at")))
+    task.updated_at   = Date.fromMillis(cursor.getLong(columnIndex("updated_at")))
     task.due_date     = cursor.getString(columnIndex("due_date"))
     task.priority     = cursor.getInt(columnIndex("priority"))
 
