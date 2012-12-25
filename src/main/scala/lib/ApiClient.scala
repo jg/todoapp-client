@@ -6,9 +6,8 @@ import org.json.JSONException
 import java.lang.IllegalArgumentException
 import java.util.ArrayList
 
-object ApiClient {
-  val rootUrl = "http://polar-scrubland-5755.herokuapp.com/"
-
+class ApiClient(rootUrl: String, userName: String, password: String) {
+  lazy val collection = Collection(get(rootUrl))
   // ApiClient State enum
   object State extends Enumeration {
     type State = Value
@@ -17,27 +16,26 @@ object ApiClient {
   import State._
 
   var mState: State = START
-  var mLogin = ""
-  var mPassword = ""
 
-  def setLogin(login: String) = mLogin = login
+  def get(url: String): String = HttpAgent.get(url, userName, password)
 
-  def setPassword(password: String) = mPassword = password
-
-  def get(url: String, username: String, password: String): String = HttpAgent.get(url, username, password)
-
-  def authenticatedGet(url: String): String = {
-    if ((mLogin != null) && (mPassword != null))
-      get(url, mLogin, mPassword)
-    else
-      throw new IllegalArgumentException("Login data not set")
+  def taskUrl: Option[String] = {
+    collection.links.flatMap(links =>
+      links.find(_.rel == "tasks").map(link => link.href))
   }
 
-  def findResourceUrl(resourceName: String): String = ""
+  def taskCollection: Option[Collection] = taskUrl.map(url => Collection(get(url)))
 
-  def findTaskListUrl(): String = path("/tasks")
+  /*
+  def getTasks(): Option[List[Task]] = {
+    taskCollection.map(collection =>
+    )
+  }
+  */
 
-  def path(path: String): String = rootUrl + path
+  def putTasks = {
+    val url = taskUrl
+  }
 
   /*
   def getTaskList(): ArrayList[Task] = {

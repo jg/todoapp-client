@@ -26,6 +26,7 @@ class MainActivity extends Activity with TypedActivity with ActivityExtensions {
     setContext()
     initListView()
     initCommandButton(listView, R.id.commandButton)
+    initSyncButton(listView, R.id.synchronizeButton)
     initTabs()
     adapter.showIncompleteTasks(context)
 
@@ -39,6 +40,8 @@ class MainActivity extends Activity with TypedActivity with ActivityExtensions {
   // Initializers
 
   def setContext() = context = this
+
+  def initSyncButton(listView: ListView, id: Int) = findButton(id).setOnClickListener(onClickListener(synchronizeButtonHandler))
 
   def initCommandButton(listView: ListView, id: Int) = {
 
@@ -148,6 +151,12 @@ class MainActivity extends Activity with TypedActivity with ActivityExtensions {
 
     unCheckAllItems(listView)
     initCommandButton(listView, R.id.commandButton)
+  }
+
+  def synchronizeButtonHandler(view: View) = {
+    Log.i("clicked synchronize!")
+    val collection = Collection("http://polar-scrubland-5755.herokuapp.com", "juliusz.gonera@gmail.com", "testtest")
+    collection.links.map(links => links.find(_.rel == "tasks").map(l => pr(l.href)))
   }
 
   def addNewTaskButtonHandler(view: View) = {

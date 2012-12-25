@@ -82,4 +82,8 @@ class Task(val _title: String, val task_list: String) {
     }
   }
 
+  def toJSON = {
+    
+  }
+
 }

@@ -26,10 +26,10 @@ object HttpAgent {
 
       val httpget     = new HttpGet(url)
       val requestLine = httpget.getRequestLine().toString()
+      Log.i("executing request: " + requestLine)
       val response    = httpclient.execute(httpget)
       statusCode     = response.getStatusLine().getStatusCode()
 
-      Log.i("executing request: " + requestLine)
       Log.i("response status: " + Integer.toString(statusCode))
 
       val entity = response.getEntity()
@@ -56,7 +56,11 @@ object HttpAgent {
     val total = new StringBuilder()
 
     var line = ""
-    while ((line = r.readLine()) != null) total.append(line)
+    line = r.readLine()
+    while (line != null ) {
+      total.append(line)
+      line = r.readLine()
+    }
 
     total.toString()
   }
