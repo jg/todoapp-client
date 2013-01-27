@@ -1,8 +1,5 @@
 package com.android.todoapp
 
-import org.json.JSONObject
-import org.json.JSONArray
-import org.json.JSONException
 import java.lang.IllegalArgumentException
 import java.util.ArrayList
 
@@ -26,12 +23,10 @@ class ApiClient(rootUrl: String, userName: String, password: String) {
 
   def taskCollection: Option[Collection] = taskUrl.map(url => Collection(get(url)))
 
-  /*
-  def getTasks(): Option[List[Task]] = {
-    taskCollection.map(collection =>
-    )
+  def getTasks(): List[Task] = {
+    for (taskItem <- taskCollection.get.items.get)
+      yield Task.fromDataList(taskItem.data.get)
   }
-  */
 
   def putTasks = {
     val url = taskUrl

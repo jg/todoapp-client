@@ -29,6 +29,11 @@ object Task {
 
   def toSQL() = fieldMap.map((x) => x._1 + " " + x._2).mkString(", ")
 
+  def fromDataList(lst: List[Data]): Task = {
+    val title = lst.find(el => el.name == "title").get.value
+    val task_list = lst.find(el => el.name == "task_list").get.value
+    new Task(title, task_list)
+  }
 }
 
 class Task(val _title: String, val task_list: String) {
