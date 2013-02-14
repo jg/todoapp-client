@@ -11,11 +11,17 @@ import collection.JavaConversions._
 import android.util.SparseBooleanArray
 import android.widget.ArrayAdapter
 import android.os.IBinder
+import android.support.v4.app.DialogFragment
+import android.support.v4.app.FragmentActivity
+import android.widget.AbsListView
+
+import android.content.DialogInterface
+import android.content.DialogInterface.OnClickListener
 
 import com.android.todoapp.Implicits._
 import com.android.todoapp.Utils._
 
-class MainActivity extends Activity with TypedActivity with ActivityExtensions {
+class MainActivity extends FragmentActivity with TypedActivity with ActivityExtensions {
   var context: Context   = _
   var listView: ListView = _
 
@@ -74,7 +80,7 @@ class MainActivity extends Activity with TypedActivity with ActivityExtensions {
     listView = findListView(R.id.taskList)
 
     listView.setAdapter(Tasks.adapter(context))
-    listView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
+    listView.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
 
     listView.setOnItemClickListener(new OnItemClickListener() {
       override def onItemClick(adapter: AdapterView[_], view: View, position: Int, arg: Long) = {
@@ -159,17 +165,38 @@ class MainActivity extends Activity with TypedActivity with ActivityExtensions {
     collection.links.map(links => links.find(_.rel == "tasks").map(l => pr(l.href)))
   }
 
-  def addNewTaskButtonHandler(view: View) = {
-    showNewTaskForm()
+  def addNewTaskButtonHandler(view: View) = showNewTaskForm()
+
+  def priorityButtonHandler(view: View) = {
+    val priorities = getResources().getStringArray(R.array.task_priorities)
+    val listener = (selection: String) => pr(selection)
+    val dialog = new PickerDialog(this, priorities.asInstanceOf[Array[CharSequence]], listener)
+    dialog.show(getSupportFragmentManager(), "priority-dialog")
+
+  }
+
+  def dateButtonHandler(view: View) = {
+    val listener = (selection: String) => pr(selection)
+    val dialog = new DatePickerDialog(this, "Date", listener)
+    dialog.show(getSupportFragmentManager(), "date-dialog")
+  }
+
+  def timeButtonHandler(view: View) = {
+    val listener = (hour: Int, minute: Int) => pr(hour.toString() + ":" + minute.toString())
+    val dialog = new TimePickerDialog(this, listener)
+    dialog.show(getSupportFragmentManager(), "time-dialog")
+  }
+
+  def repeatButtonHandler(view: View) = {
+    val repeat_list = getResources().getStringArray(R.array.repeat).asInstanceOf[Array[CharSequence]]
+    val listener = (selection: String) => pr(selection)
+    val dialog = new PickerDialog(this, repeat_list, listener)
+    dialog.show(getSupportFragmentManager(), "repeat-dialog")
   }
 
   // Add Task Init Code
 
   def initAddNewTaskView() = {
-    initTaskPrioritySpinner(R.id.priority)
-    initTaskListSpinner(R.id.taskListSpinner)
-    initDueDateSpinner(R.id.due_date)
-
     val input = findViewById(R.id.task_title_input).asInstanceOf[TextView]
     input.setOnEditorActionListener(onEditorActionListener(handleTaskTitleInputEnterKey))
   }
@@ -181,11 +208,11 @@ class MainActivity extends Activity with TypedActivity with ActivityExtensions {
       Date.parse(spinner.value).toString()
     }
 
-    def taskList = findSpinner(R.id.taskListSpinner).value
+    // def taskList = findSpinner(R.id.taskListSpinner).value
 
     def addNewTask() = {
       val title = findViewById(R.id.task_title_input).asInstanceOf[TextView]
-      val task = new Task(title, taskList)
+      val task = new Task(title, "default")
       val spinner = findSpinner(R.id.priority)
 
       task.setPriority(findSpinner(R.id.priority).value)

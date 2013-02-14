@@ -77,47 +77,89 @@
   <FrameLayout
     android:id="@+id/tasksNew"
     android:visibility="gone"
-    android:background="#FFBFB4B8"
     android:foregroundGravity="top"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
     xmlns:android="http://schemas.android.com/apk/res/android">
-    <RelativeLayout
-      android:layout_width="fill_parent"
-      android:layout_height="120dp"
-      xmlns:android="http://schemas.android.com/apk/res/android">
-      <EditText
-          android:id="@+id/task_title_input"
-          android:inputType="text"
-          android:layout_width="match_parent"
-          android:layout_height="wrap_content"
-          android:layout_marginTop="16dp"
-          android:layout_marginLeft="4dp"
-          android:layout_marginRight="4dp"
-          android:layout_marginBottom="4dp"
-          android:hint="New Task Title" />
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:orientation="vertical"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content">
+      <RelativeLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:background="#FFBFB4B8"
+        xmlns:android="http://schemas.android.com/apk/res/android">
+        <EditText
+            android:id="@+id/task_title_input"
+            android:inputType="text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="New Task Title" />
 
-      <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-          android:orientation="horizontal"
-          android:layout_below="@+id/task_title_input"
-          android:layout_width="fill_parent"
-          android:layout_height="wrap_content">
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            android:orientation="horizontal"
+            android:layout_below="@+id/task_title_input"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content">
 
-        <com.android.todoapp.Spinner
-          android:id="@+id/taskListSpinner"
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content" />
-        <com.android.todoapp.Spinner
-          android:id="@+id/priority"
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content" />
-        <com.android.todoapp.Spinner
-          android:id="@+id/due_date"
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content" />
+          <!--
+          <com.android.todoapp.Spinner
+            android:id="@+id/taskListSpinner"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+          <com.android.todoapp.Spinner
+            android:id="@+id/priority"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+          <com.android.todoapp.Spinner
+            android:id="@+id/due_date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+          -->
+          <Button
+            android:id="@+id/priority"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="priority"
+            android:layout_gravity="bottom"
+            android:onClick="priorityButtonHandler" />
+          <Button
+            android:id="@+id/date"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="date"
+            android:layout_gravity="bottom"
+            android:onClick="dateButtonHandler" />
+          <Button
+            android:id="@+id/time"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="time"
+            android:layout_gravity="bottom"
+            android:onClick="timeButtonHandler" />
+          <Button
+            android:id="@+id/repeat"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="repeat"
+            android:layout_gravity="bottom"
+            android:onClick="repeatButtonHandler" />
 
-      </LinearLayout>
-    </RelativeLayout>
+        </LinearLayout>
+      </RelativeLayout>
+
+      <ListView
+        android:layout_below="@+id/repeat"
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/choiceList"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content" />
+    </LinearLayout>
   </FrameLayout>
 
 </RelativeLayout>
