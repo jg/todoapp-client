@@ -50,7 +50,6 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
   def initSyncButton(listView: ListView, id: Int) = findButton(id).setOnClickListener(onClickListener(synchronizeButtonHandler))
 
   def initCommandButton(listView: ListView, id: Int) = {
-
     def initAddNewTaskButton(id: Int) = {
       val b = findButton(id)
 
@@ -88,7 +87,6 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
       }
     })
   }
-
 
   def initTabs() = {
     object Tabs {
@@ -165,36 +163,53 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
     collection.links.map(links => links.find(_.rel == "tasks").map(l => pr(l.href)))
   }
 
-  def addNewTaskButtonHandler(view: View) = showNewTaskForm()
+  def addNewTaskButtonHandler(view: View) = {
+    def showNewTaskForm() = {
+      findViewById(R.id.tasksNew).setVisibility(View.VISIBLE)
+      val input = findEditText(R.id.task_title_input)
+      input.setText("")
+      input.requestFocus()
+      showKeyboard()
+    }
+    showNewTaskForm()
+  }
 
-  def priorityButtonHandler(view: View) = {
+
+  // New Task Form Handlers
+
+  // Dialogs
+
+  lazy val prioritySelectionDialog: PickerDialog = {
     val priorities = getResources().getStringArray(R.array.task_priorities)
     val listener = (selection: String) => pr(selection)
-    val dialog = new PickerDialog(this, priorities.asInstanceOf[Array[CharSequence]], listener)
-    dialog.show(getSupportFragmentManager(), "priority-dialog")
-
+    new PickerDialog(this, priorities.asInstanceOf[Array[CharSequence]], listener)
   }
 
-  def dateButtonHandler(view: View) = {
+  lazy val dateSelectionDialog = {
     val listener = (selection: String) => pr(selection)
-    val dialog = new DatePickerDialog(this, "Date", listener)
-    dialog.show(getSupportFragmentManager(), "date-dialog")
+    new DatePickerDialog(this, "Date", listener)
   }
 
-  def timeButtonHandler(view: View) = {
+  lazy val timeSelectionDialog = {
     val listener = (hour: Int, minute: Int) => pr(hour.toString() + ":" + minute.toString())
-    val dialog = new TimePickerDialog(this, listener)
-    dialog.show(getSupportFragmentManager(), "time-dialog")
+    new TimePickerDialog(this, listener)
   }
 
-  def repeatButtonHandler(view: View) = {
+  lazy val repeatSelectionDialog = {
     val repeat_list = getResources().getStringArray(R.array.repeat).asInstanceOf[Array[CharSequence]]
     val listener = (selection: String) => pr(selection)
-    val dialog = new PickerDialog(this, repeat_list, listener)
-    dialog.show(getSupportFragmentManager(), "repeat-dialog")
+    new PickerDialog(this, repeat_list, listener)
   }
 
-  // Add Task Init Code
+  def priorityButtonHandler(view: View) = prioritySelectionDialog.show(getSupportFragmentManager(), "priority-dialog")
+
+  def dateButtonHandler(view: View) = dateSelectionDialog.show(getSupportFragmentManager(), "date-dialog")
+
+  def timeButtonHandler(view: View) = timeSelectionDialog.show(getSupportFragmentManager(), "time-dialog")
+
+  def repeatButtonHandler(view: View) = repeatSelectionDialog.show(getSupportFragmentManager(), "repeat-dialog")
+
+  // New Task Form Initializers
 
   def initAddNewTaskView() = {
     val input = findViewById(R.id.task_title_input).asInstanceOf[TextView]
@@ -203,20 +218,14 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
 
   def handleTaskTitleInputEnterKey(v: TextView, actionId: Int, event: KeyEvent) = {
     def dueDate() = {
-      val spinner = findSpinner(R.id.due_date)
-
-      Date.parse(spinner.value).toString()
     }
-
-    // def taskList = findSpinner(R.id.taskListSpinner).value
 
     def addNewTask() = {
       val title = findViewById(R.id.task_title_input).asInstanceOf[TextView]
       val task = new Task(title, "default")
-      val spinner = findSpinner(R.id.priority)
 
       task.setPriority(findSpinner(R.id.priority).value)
-      task.due_date = dueDate()
+      // task.due_date = dueDate()
       Tasks.add(this, task)
       pr("New Task Added")
     }
@@ -231,20 +240,6 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
     findViewById(R.id.tasksNew).setVisibility(View.GONE)
     hideKeyboard(findEditText(R.id.task_title_input).getWindowToken())
   }
-
-  def showNewTaskForm() = {
-    findViewById(R.id.tasksNew).setVisibility(View.VISIBLE)
-    val input = findEditText(R.id.task_title_input)
-    input.setText("")
-    input.requestFocus()
-    showKeyboard()
-  }
-
-  def initTaskListSpinner(id: Int) = findSpinner(id).fromResource(R.array.task_lists)
-
-  def initTaskPrioritySpinner(id: Int) = findSpinner(id).fromResource(R.array.task_priorities)
-
-  def initDueDateSpinner(id: Int) = findSpinner(id).asDueDateSpinner()
 
   // Utility functions
 
