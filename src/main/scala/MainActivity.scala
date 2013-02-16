@@ -214,13 +214,13 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
   // New Task Form Initializers
 
   def initAddNewTaskView() = {
+    // handle task title input enter keypress
     val input = findViewById(R.id.task_title_input).asInstanceOf[TextView]
     input.setOnEditorActionListener(onEditorActionListener(handleTaskTitleInputEnterKey))
   }
 
   def handleTaskTitleInputEnterKey(v: TextView, actionId: Int, event: KeyEvent) = {
-    def addNewTask() = {
-      val title = findViewById(R.id.task_title_input).asInstanceOf[TextView]
+    def addNewTask(title: String) = {
       val task = new Task(title)
 
       if (prioritySelectionDialog.hasSelection)
@@ -236,10 +236,15 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
       pr("New Task Added")
     }
 
-    hideTaskNewForm()
-    addNewTask()
 
-    false
+    val title = findViewById(R.id.task_title_input).asInstanceOf[TextView]
+    if (title.length > 0)  {
+      hideTaskNewForm()
+      addNewTask(title)
+      selectionDialogs.foreach(_.clearSelection()) // clear previous dialog selections
+    }
+
+    true
   }
 
   def hideTaskNewForm() = {

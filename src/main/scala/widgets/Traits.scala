@@ -6,5 +6,7 @@ trait SelectionAccess[T] {
   def setSelection(value: T) = selection = Some(value)
 
   def hasSelection = !selection.isEmpty
+
+  def clearSelection() = selection = None
 }
 
