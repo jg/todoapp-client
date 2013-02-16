@@ -44,10 +44,15 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
 
     def setTaskPriority(): Unit = {
       val v = view.findViewById(R.id.taskPriority)
-      task.priority.toString match {
-        case "high" => v.setBackgroundColor(Color.RED)
-        case "low"  => v.setBackgroundColor(Color.BLUE)
-        case _      => v.setBackgroundColor(Color.BLACK)
+
+      if (!task.priority.isEmpty) {
+        task.priority.get.toString match {
+          case "high" => v.setBackgroundColor(Color.RED)
+          case "low"  => v.setBackgroundColor(Color.BLUE)
+          case _      => v.setBackgroundColor(Color.BLACK)
+        }
+      } else {
+        v.setBackgroundColor(Color.BLACK)
       }
     }
 
