@@ -29,7 +29,8 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
     super.onCreate(bundle)
     setContentView(R.layout.main)
 
-    setContext()
+    setTitle()
+    context = this
     initListView()
     initCommandButton(listView, R.id.commandButton)
     initSyncButton(listView, R.id.synchronizeButton)
@@ -39,13 +40,14 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
     initAddNewTaskView()
   }
 
-  override def onDestroy() {
-    TaskTable(this).close()
-  }
+  override def onDestroy() = TaskTable(this).close()
 
   // Initializers
 
-  def setContext() = context = this
+  def setTitle() = { 
+    val textView = findViewById(R.id.title).asInstanceOf[TextView]
+    textView.setText("master")
+  }
 
   def initSyncButton(listView: ListView, id: Int) = findButton(id).setOnClickListener(onClickListener(synchronizeButtonHandler))
 
