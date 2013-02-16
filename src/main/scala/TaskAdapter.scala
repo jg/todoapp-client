@@ -36,53 +36,43 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
   def getTask(i: Integer): Task = {
     // TODO: refactor Task#fromCursor?
     val cursor: Cursor = getItem(i).asInstanceOf[Cursor]
-    val title = cursor.getString(columnIndex("title"))
-    val taskList = cursor.getString(columnIndex("task_list"))
-
-    val task = new Task(title, taskList)
-
-    task.id           = cursor.getInt(columnIndex("_id"))
-    task.completed_at = Some(cursor.getString(columnIndex("completed_at")))
-    task.created_at   = Date.fromMillis(cursor.getLong(columnIndex("created_at")))
-    task.updated_at   = Date.fromMillis(cursor.getLong(columnIndex("updated_at")))
-    task.due_date     = cursor.getString(columnIndex("due_date"))
-    task.priority     = cursor.getInt(columnIndex("priority"))
-
-    task
+    Task.fromCursor(cursor)
   }
 
   override def bindView(view: View, context: Context, cursor: Cursor) {
-    // set appropriate task priority color
-    def setTaskPriority(id: Int): Unit = {
-      val v = view.findViewById(id)
-      cursor.getInt(columnIndex("priority")) match {
-        case 1 => v.setBackgroundColor(Color.RED)
-        case -1 => v.setBackgroundColor(Color.BLUE)
-        case _ => v.setBackgroundColor(Color.BLACK)
+    val task = Task.fromCursor(cursor)
+
+    def setTaskPriority(): Unit = {
+      val v = view.findViewById(R.id.taskPriority)
+      task.priority.toString match {
+        case "high" => v.setBackgroundColor(Color.RED)
+        case "low"  => v.setBackgroundColor(Color.BLUE)
+        case _      => v.setBackgroundColor(Color.BLACK)
       }
     }
 
-    def setTaskDueDate(id: Int) = {
-      val v = view.findViewById(id).asInstanceOf[TextView]
-      val date = Date.parse(cursor.getString(Task.columnIndex("due_date")))
-      v.setText(
-        if (date.isToday)
-          "Today"
-        else
-          date.dayMonthFormat
-      )
+    def setTaskDueDate() = {
+      if (!task.due_date.isEmpty) {
+        val v = view.findViewById(R.id.dueDate).asInstanceOf[TextView]
+        val date = task.due_date.get
+        v.setText(
+          if (date.isToday)
+            "Today"
+          else
+            date.dayMonthFormat
+        )
+      }
     }
 
-    def setTaskList(id: Int) = {
-      val v = view.findViewById(id).asInstanceOf[TextView]
-      v.setText(cursor.getString(Task.columnIndex("task_list")))
+    def setTaskList() = {
+      val v = view.findViewById(R.id.taskList).asInstanceOf[TextView]
+      v.setText(task.task_list)
     }
 
-    val title = cursor.getString(columnIndex("title"))
-    view.findViewById(android.R.id.text1).asInstanceOf[TextView].setText(title)
-    setTaskPriority(R.id.taskPriority)
-    setTaskDueDate(R.id.dueDate)
-    setTaskList(R.id.taskList)
+    view.findViewById(android.R.id.text1).asInstanceOf[TextView].setText(task.title)
+    setTaskPriority()
+    setTaskDueDate()
+    setTaskList()
   }
 
   override def newView(context: Context, cursor: Cursor, parent: ViewGroup): View = {

@@ -12,8 +12,8 @@ import android.view.LayoutInflater
 import android.widget.CalendarView
 
 class DatePickerDialog(context: Context, prompt: String, listener: (String) => Unit)
-  extends DialogFragment {
-  var selection: Option[String] = None
+  extends DialogFragment
+  with SelectionAccess[String] {
 
   def inflater: LayoutInflater = context.getSystemService(Context.LAYOUT_INFLATER_SERVICE).asInstanceOf[LayoutInflater]
 
@@ -25,7 +25,7 @@ class DatePickerDialog(context: Context, prompt: String, listener: (String) => U
            .setPositiveButton("Pick", new DialogInterface.OnClickListener() {
              override def onClick(dialog: DialogInterface, id: Int) {
                val date = Date.fromMillis(calendarView.getDate()).toString()
-               selection = Some(date)
+               setSelection(date)
                listener(date)
              }
            })

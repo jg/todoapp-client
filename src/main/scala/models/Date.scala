@@ -23,8 +23,20 @@ object StandardFormat {
   }
 }
 
+object MilisFormat {
+  def unapply(millis: Long): Option[Date] = {
+    try {
+      Some(Date.fromMillis(millis))
+    } catch {
+      case ex: IllegalArgumentException => None
+    }
+  }
+}
+
 object Date {
   implicit def date2long(d: Date): java.lang.Long = d.getMillis
+
+  def apply(s: String) = parse(s)
 
   def parse(s: String): Date = s match {
     case Today()     => new Date(new DateTime())
@@ -72,6 +84,8 @@ object Date {
 
 class Date(date: DateTime) {
   override def toString = DateTimeFormat.forPattern("yyyy-MM-dd").print(date)
+
+  def fullFormat = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm").print(date)
 
   def dayMonthFormat = DateTimeFormat.forPattern("dd MMM").print(date)
 

@@ -3,17 +3,20 @@ package com.android.todoapp
 import android.content.ContentValues
 import android.content.Context
 import scala.collection.mutable.LinkedHashMap
+import android.database.Cursor
 
 object Task {
   val fieldMap = LinkedHashMap(
     "_id"          -> "integer primary key",
     "title"        -> "string",
-    "completed_at" -> "string",
-    "updated_at"   -> "string",
-    "created_at"   -> "string",
-    "due_date"     -> "string",
+    "completed_at" -> "integer",
+    "updated_at"   -> "integer",
+    "created_at"   -> "integer",
+    "due_date"     -> "integer",
+    "due_time"     -> "integer",
     "task_list"    -> "string",
-    "priority"     -> "integer"
+    "priority"     -> "integer",
+    "repeat"       -> "integer"
   )
 
   def columnIndex(fieldName: String): Int = {
@@ -30,26 +33,49 @@ object Task {
   def toSQL() = fieldMap.map((x) => x._1 + " " + x._2).mkString(", ")
 
   def fromDataList(lst: List[Data]): Task = {
-    val title = lst.find(el => el.name == "title").get.value
-    val task_list = lst.find(el => el.name == "task_list").get.value
-    new Task(title, task_list)
+    val title = lst.find(el => el.name == "title").get.value.get
+    new Task(title)
+  }
+
+  def fromCursor(cursor: Cursor): Task = {
+    def i(s: String) = columnIndex(s)
+
+    def isPresent(field: String) = !cursor.isNull(i(field))
+
+    val title = cursor.getString(columnIndex("title"))
+    val task = new Task(title)
+
+    task.id           = cursor.getInt(columnIndex("_id"))
+    task.updated_at   = Date.fromMillis(cursor.getLong(columnIndex("updated_at")))
+    task.created_at   = Date.fromMillis(cursor.getLong(columnIndex("created_at")))
+    if (isPresent("completed_at")) task.completed_at = Some(Date.fromMillis(cursor.getLong(i("completed_at"))))
+    if (isPresent("due_date")) task.due_date = Some(Date.fromMillis(cursor.getLong(i("due_date"))))
+    if (isPresent("due_time")) task.due_time = Some(Time.fromMinutes(cursor.getInt(i("due_time"))))
+    if (isPresent("repeat")) task.repeat = Some(Period(cursor.getString(columnIndex("repeat"))))
+    if (isPresent("priority")) task.priority = Some(Priority.fromInteger(cursor.getInt(columnIndex("priority"))))
+    if (isPresent("task_list")) task.task_list = cursor.getString(columnIndex("task_list"))
+
+    task
   }
 }
 
-class Task(val _title: String, val task_list: String) {
+class Task(val _title: String) {
   var id: Long = -1
-  var completed_at: Option[String] = None
+  var completed_at: Option[Date] = None
 
   var created_at = Date.now
   var updated_at = Date.now
 
-  var due_date = Date.today.toString()
-  var priority: Int = 0
+  var due_date: Option[Date] = None
+  var due_time: Option[Time] = None
+  var priority: Option[Priority] = None
+  var repeat: Option[Period] = None
+  var task_list: String = "master"
   def title = _title
 
   override def toString = title
 
-  def markAsCompleted() = completed_at = Some(Date.today.toString())
+  def markAsCompleted() = completed_at = Some(Date.today)
 
   def contentValues(): ContentValues = {
     var values = new ContentValues()
@@ -57,8 +83,9 @@ class Task(val _title: String, val task_list: String) {
     values.put("task_list", task_list)
     values.put("created_at", created_at)
     values.put("updated_at", updated_at)
-    values.put("due_date", due_date)
-    values.put("priority", priority: Integer)
+    if (!due_date.isEmpty) values.put("due_date", due_date.get)
+    if (!due_time.isEmpty) values.put("due_time", due_time.get.toInt: Integer)
+    if (!priority.isEmpty) values.put("priority", priority.get.toInt: Integer)
     completed_at match {
       case Some(date) => values.put("completed_at", date)
       case None => values.putNull("completed_at")
@@ -68,27 +95,15 @@ class Task(val _title: String, val task_list: String) {
   }
 
   def save(context: Context) {
-    if ( savedP() ) {
+    if ( savedP() )
       Tasks.update(context, this)
-    } else {
+    else
       Tasks.add(context, this)
-    }
   }
 
-  def savedP(): Boolean = {
-    id != -1
-  }
-
-  def setPriority(str: String) = {
-    this.priority = str match {
-      case "high" => 1
-      case "low" => -1
-      case _ => 0
-    }
-  }
+  def savedP(): Boolean = id != -1
 
   def toJSON = {
-    
   }
 
 }

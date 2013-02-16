@@ -201,6 +201,8 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
     new PickerDialog(this, repeat_list, listener)
   }
 
+  lazy val selectionDialogs = List(prioritySelectionDialog, dateSelectionDialog, timeSelectionDialog, repeatSelectionDialog)
+
   def priorityButtonHandler(view: View) = prioritySelectionDialog.show(getSupportFragmentManager(), "priority-dialog")
 
   def dateButtonHandler(view: View) = dateSelectionDialog.show(getSupportFragmentManager(), "date-dialog")
@@ -217,15 +219,19 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
   }
 
   def handleTaskTitleInputEnterKey(v: TextView, actionId: Int, event: KeyEvent) = {
-    def dueDate() = {
-    }
-
     def addNewTask() = {
       val title = findViewById(R.id.task_title_input).asInstanceOf[TextView]
-      val task = new Task(title, "default")
+      val task = new Task(title)
 
-      task.setPriority(findSpinner(R.id.priority).value)
-      // task.due_date = dueDate()
+      if (prioritySelectionDialog.hasSelection)
+        task.priority = Some(Priority(prioritySelectionDialog.selection.get))
+      if (dateSelectionDialog.hasSelection)
+        task.due_date = Some(Date(dateSelectionDialog.selection.get))
+      if (timeSelectionDialog.hasSelection)
+        task.due_time = Some(Time(timeSelectionDialog.selection.get))
+      if (repeatSelectionDialog.hasSelection)
+        task.repeat   = Some(Period(repeatSelectionDialog.selection.get))
+
       Tasks.add(this, task)
       pr("New Task Added")
     }
@@ -246,7 +252,5 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
   def adapter = listView.getAdapter()
 
   def pr(s: String) = Toast.makeText(this, s, Toast.LENGTH_SHORT).show();
-
-
 
 }
