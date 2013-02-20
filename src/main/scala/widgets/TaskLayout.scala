@@ -1,23 +1,21 @@
 package com.android.todoapp;
 
-import android.content.Context;
-import android.util.AttributeSet;
-import android.view.View;
-import android.widget.Checkable;
-import android.widget.CheckedTextView;
-import android.widget.RelativeLayout;
+import android.content.Context
+import android.util.AttributeSet
+import android.view.View
+import android.widget.{CheckBox, Checkable, CheckedTextView, RelativeLayout}
 
-class CheckableRelativeLayout(context: Context, attrs: AttributeSet)
+class TaskLayout(context: Context, attrs: AttributeSet)
   extends RelativeLayout(context, attrs) with Checkable {
-  private var checkbox: CheckedTextView = _;
+  private var checkbox: CheckBox = _
 
     override def onFinishInflate(): Unit = {
       super.onFinishInflate();
 
       for (i <- 0 to getChildCount()) {
         val v = getChildAt(i)
-        if (v.isInstanceOf[CheckedTextView])
-          checkbox = v.asInstanceOf[CheckedTextView];
+        if (v.isInstanceOf[CheckBox])
+          checkbox = v.asInstanceOf[CheckBox];
       }
     }
 

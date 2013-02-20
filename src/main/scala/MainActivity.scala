@@ -3,7 +3,7 @@ package com.android.todoapp
 import android.app.Activity
 import android.os.Bundle
 import android.view.{View, LayoutInflater, KeyEvent}
-import android.widget.{Toast, ListView, Button, AdapterView, TextView, CheckedTextView, TabHost}
+import android.widget.{Toast, ListView, Button, AdapterView, TextView, CheckedTextView, TabHost, CompoundButton}
 import android.widget.TabHost.TabContentFactory
 import android.widget.AdapterView.{OnItemClickListener, OnItemSelectedListener}
 import android.content.{Intent, Context}
@@ -14,10 +14,8 @@ import android.os.IBinder
 import android.support.v4.app.DialogFragment
 import android.support.v4.app.FragmentActivity
 import android.widget.AbsListView
-
 import android.content.DialogInterface
 import android.content.DialogInterface.OnClickListener
-
 import com.android.todoapp.Implicits._
 import com.android.todoapp.Utils._
 
@@ -39,18 +37,14 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
 
     initAddNewTaskView()
   }
-
   override def onDestroy() = TaskTable(this).close()
 
   // Initializers
-
-  def setTitle() = { 
+  def setTitle() = {
     val textView = findViewById(R.id.title).asInstanceOf[TextView]
     textView.setText("master")
   }
-
   def initSyncButton(listView: ListView, id: Int) = findButton(id).setOnClickListener(onClickListener(synchronizeButtonHandler))
-
   def initCommandButton(listView: ListView, id: Int) = {
     def initAddNewTaskButton(id: Int) = {
       val b = findButton(id)
@@ -58,36 +52,30 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
       b.setText("+")
       b.setOnClickListener(onClickListener(addNewTaskButtonHandler))
     }
-
     def initMarkTasksAsCompleteButton(id: Int) = {
       val b = findButton(id)
 
       b.setText("✓")
       b.setOnClickListener(onClickListener(markTaskAsCompleteHandler))
     }
-
-    def checkedItemCount(listView: ListView): Integer = {
-      val checkedItems: SparseBooleanArray = listView.getCheckedItemPositions()
-      Range(0, checkedItems.size()).count(i => checkedItems.valueAt(i))
+    def checkedItemCount(lv: ListView): Integer = {
+      Range(0, lv.getChildCount()).count(lv.getChildAt(_).asInstanceOf[TaskLayout].isChecked())
     }
 
-    if (checkedItemCount(listView) > 0)
+    if (checkedItemCount(listView) > 0) {
       initMarkTasksAsCompleteButton(id)
-    else
+    } else {
       initAddNewTaskButton(id)
+    }
   }
-
   def initListView() = {
     listView = findListView(R.id.taskList)
 
     listView.setAdapter(Tasks.adapter(context))
-    listView.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
 
-    listView.setOnItemClickListener(new OnItemClickListener() {
-      override def onItemClick(adapter: AdapterView[_], view: View, position: Int, arg: Long) = {
-        initCommandButton(listView, R.id.commandButton)
-      }
-    })
+    listView.getAdapter().registerCheckBoxStateChangeHandler((buttonView: CompoundButton, isChecked: Boolean) =>
+      initCommandButton(listView, R.id.commandButton)
+    )
   }
 
   def initTabs() = {
@@ -128,24 +116,23 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
 
   // Button handlers
 
-  def unCheckAllItems(v: View) =
-    for (i <- 0 to listView.getCount()) listView.setItemChecked(i, false)
+  def views(lv: ListView) = Range(0, lv.getChildCount()).map(lv.getChildAt(_))
+
+  def items(lv: ListView) = Range(0, lv.getChildCount()).map(lv.getChildAt(_))
 
   override def onBackPressed() = hideTaskNewForm()
 
   def markTaskAsCompleteHandler(view: View) {
-    def checkedItems(listView: ListView): Array[Task] = {
-      val adapter = listView.getAdapter()
-      val checkedItems: SparseBooleanArray = listView.getCheckedItemPositions()
-      val checkedIndices = Range(0, checkedItems.size()).filter(i => checkedItems.valueAt(i))
-
-      checkedIndices.map(i => adapter.getTask(checkedItems.keyAt(i))).toArray
+    def checkedItems(lv: ListView) = {
+      Range(0, lv.getChildCount())
+        .filter(lv.getChildAt(_).asInstanceOf[TaskLayout].isChecked())
+        .map(lv.getAdapter().getTask(_))
     }
-
     def markTask(context: Context, task: Task) {
       task.markAsCompleted()
       task.save(context)
     }
+    def unCheckAllItems(v: View) = views(listView).map(_.asInstanceOf[TaskLayout].setChecked(false))
 
     val items = checkedItems(listView).map(markTask(this,  _))
     Tasks.refresh(this)
@@ -158,13 +145,11 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
     unCheckAllItems(listView)
     initCommandButton(listView, R.id.commandButton)
   }
-
   def synchronizeButtonHandler(view: View) = {
     Log.i("clicked synchronize!")
     val collection = Collection("http://polar-scrubland-5755.herokuapp.com", "juliusz.gonera@gmail.com", "testtest")
     collection.links.map(links => links.find(_.rel == "tasks").map(l => pr(l.href)))
   }
-
   def addNewTaskButtonHandler(view: View) = {
     def showNewTaskForm() = {
       findViewById(R.id.tasksNew).setVisibility(View.VISIBLE)
@@ -176,7 +161,6 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
     showNewTaskForm()
   }
 
-
   // New Task Form Handlers
 
   // Dialogs
@@ -186,31 +170,23 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
     val listener = (selection: String) => pr(selection)
     new PickerDialog(this, priorities.asInstanceOf[Array[CharSequence]], listener)
   }
-
   lazy val dateSelectionDialog = {
     val listener = (selection: String) => pr(selection)
     new DatePickerDialog(this, "Date", listener)
   }
-
   lazy val timeSelectionDialog = {
     val listener = (hour: Int, minute: Int) => pr(hour.toString() + ":" + minute.toString())
     new TimePickerDialog(this, listener)
   }
-
   lazy val repeatSelectionDialog = {
     val repeat_list = getResources().getStringArray(R.array.repeat).asInstanceOf[Array[CharSequence]]
     val listener = (selection: String) => pr(selection)
     new PickerDialog(this, repeat_list, listener)
   }
-
   lazy val selectionDialogs = List(prioritySelectionDialog, dateSelectionDialog, timeSelectionDialog, repeatSelectionDialog)
-
   def priorityButtonHandler(view: View) = prioritySelectionDialog.show(getSupportFragmentManager(), "priority-dialog")
-
   def dateButtonHandler(view: View) = dateSelectionDialog.show(getSupportFragmentManager(), "date-dialog")
-
   def timeButtonHandler(view: View) = timeSelectionDialog.show(getSupportFragmentManager(), "time-dialog")
-
   def repeatButtonHandler(view: View) = repeatSelectionDialog.show(getSupportFragmentManager(), "repeat-dialog")
 
   // New Task Form Initializers
@@ -220,7 +196,6 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
     val input = findViewById(R.id.task_title_input).asInstanceOf[TextView]
     input.setOnEditorActionListener(onEditorActionListener(handleTaskTitleInputEnterKey))
   }
-
   def handleTaskTitleInputEnterKey(v: TextView, actionId: Int, event: KeyEvent) = {
     def addNewTask(title: String) = {
       val task = new Task(title)
@@ -238,7 +213,6 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
       pr("New Task Added")
     }
 
-
     val title = findViewById(R.id.task_title_input).asInstanceOf[TextView]
     if (title.length > 0)  {
       hideTaskNewForm()
@@ -248,7 +222,6 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
 
     true
   }
-
   def hideTaskNewForm() = {
     findViewById(R.id.tasksNew).setVisibility(View.GONE)
     hideKeyboard(findEditText(R.id.task_title_input).getWindowToken())
@@ -257,7 +230,6 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
   // Utility functions
 
   def adapter = listView.getAdapter()
-
   def pr(s: String) = Toast.makeText(this, s, Toast.LENGTH_SHORT).show();
 
 }

@@ -12,6 +12,7 @@ trait Finders extends Activity {
   def findButton(id: Int): Button = findViewById(id).asInstanceOf[Button]
   def findListView(id: Int) = findViewById(id).asInstanceOf[ListView]
   def findEditText(id: Int) = findViewById(id).asInstanceOf[EditText]
+  def findTextView(id: Int) = findViewById(id).asInstanceOf[TextView]
 }
 
 trait ActivityExtensions extends Activity with Finders {
@@ -42,4 +43,5 @@ object Utils {
 object Log {
   def i(msg: String) { android.util.Log.i("todoapp", msg) }
 }
+
 

@@ -1,16 +1,17 @@
 package com.android.todoapp
 
 import android.content.Context
-import android.widget.{TextView}
-import android.widget.{FilterQueryProvider}
-import android.widget.CursorAdapter
+import android.widget.{TextView, CheckBox, FilterQueryProvider, CursorAdapter, CompoundButton}
 import android.database.Cursor
 import android.view.{ViewGroup, View, LayoutInflater}
 import android.app.Activity
 import com.android.todoapp.Implicits._
 import android.graphics.Color
+import com.android.todoapp.Utils._
+import android.widget.Toast
 
 class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(context, cursor) {
+  var checkBoxStateChangeHandler: Option[(CompoundButton, Boolean) => Unit] = None
 
   // TODO: this smells
   def showIncompleteTasks(context: Context) {
@@ -38,6 +39,8 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
     val cursor: Cursor = getItem(i).asInstanceOf[Cursor]
     Task.fromCursor(cursor)
   }
+
+  def registerCheckBoxStateChangeHandler(f: (CompoundButton, Boolean) => Unit) = checkBoxStateChangeHandler = Some(f)
 
   override def bindView(view: View, context: Context, cursor: Cursor) {
     val task = Task.fromCursor(cursor)
@@ -74,10 +77,28 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
       v.setText(task.task_list)
     }
 
-    view.findViewById(android.R.id.text1).asInstanceOf[TextView].setText(task.title)
+    def setTaskTitleClickListener() = {
+      val v = view.findViewById(R.id.taskTitle)
+      v.setOnClickListener((v: View) => pr("task title clicked"))
+    }
+
+    def setTaskCheckboxToggleListener() = {
+      val v = view.findViewById(R.id.taskCheckbox).asInstanceOf[CheckBox]
+      v.setOnCheckedChangeListener(
+        (buttonView: CompoundButton, isChecked: Boolean) => {
+          for (handler <- checkBoxStateChangeHandler) handler(buttonView, isChecked)
+        }
+        )
+    }
+
+    def setTaskTitle() = view.findViewById(R.id.taskTitle).asInstanceOf[TextView].setText(task.title)
+
+    setTaskTitle()
     setTaskPriority()
     setTaskDueDate()
     setTaskList()
+    setTaskTitleClickListener()
+    setTaskCheckboxToggleListener()
   }
 
   override def newView(context: Context, cursor: Cursor, parent: ViewGroup): View = {
@@ -91,5 +112,7 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
   // Helpers
 
   def columnIndex(fieldName: String) = Task.columnIndex(fieldName)
+
+  def pr(s: String) = Toast.makeText(context, s, Toast.LENGTH_SHORT).show();
 
 }
