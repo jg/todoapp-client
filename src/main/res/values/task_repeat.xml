@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <string-array name="repeat">
+  <string-array name="task_repeat">
+    <item>Not set</item>
     <item>Every Day</item>
     <item>Every Week</item>
     <item>Every 2 Weeks</item>

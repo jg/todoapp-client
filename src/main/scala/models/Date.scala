@@ -87,6 +87,8 @@ class Date(date: DateTime) {
 
   def fullFormat = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm").print(date)
 
+  def dateFormat = DateTimeFormat.forPattern("yyyy-MM-dd").print(date)
+
   def dayMonthFormat = DateTimeFormat.forPattern("dd MMM").print(date)
 
   def weekday = DateTimeFormat.forPattern("EEEE").print(date).toLowerCase

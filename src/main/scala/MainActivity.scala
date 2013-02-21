@@ -71,11 +71,18 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
   def initListView() = {
     listView = findListView(R.id.taskList)
 
-    listView.setAdapter(Tasks.adapter(context))
+    val adapter = Tasks.adapter(context)
 
-    listView.getAdapter().registerCheckBoxStateChangeHandler((buttonView: CompoundButton, isChecked: Boolean) =>
-      initCommandButton(listView, R.id.commandButton)
-    )
+    adapter.registerCheckBoxStateChangeHandler((buttonView: CompoundButton, isChecked: Boolean) =>
+      initCommandButton(listView, R.id.commandButton))
+
+    adapter.registerTaskClickHandler((taskCursorPosition: Int) =>  {
+      val intent = new Intent(this, classOf[TaskEditActivity])
+      intent.putExtra("taskPosition", taskCursorPosition);
+      startActivity(intent)
+    })
+
+    listView.setAdapter(adapter)
   }
 
   def initTabs() = {
@@ -179,7 +186,7 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
     new TimePickerDialog(this, listener)
   }
   lazy val repeatSelectionDialog = {
-    val repeat_list = getResources().getStringArray(R.array.repeat).asInstanceOf[Array[CharSequence]]
+    val repeat_list = getResources().getStringArray(R.array.task_repeat).asInstanceOf[Array[CharSequence]]
     val listener = (selection: String) => pr(selection)
     new PickerDialog(this, repeat_list, listener)
   }
@@ -201,7 +208,7 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
       val task = new Task(title)
 
       if (prioritySelectionDialog.hasSelection)
-        task.priority = Some(Priority(prioritySelectionDialog.selection.get))
+        task.priority = Priority(prioritySelectionDialog.selection.get)
       if (dateSelectionDialog.hasSelection)
         task.due_date = Some(Date(dateSelectionDialog.selection.get))
       if (timeSelectionDialog.hasSelection)

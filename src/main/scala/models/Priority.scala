@@ -5,6 +5,8 @@ object Priority {
   def apply(s: String) = new Priority(s)
   implicit def priority2string(d: Priority): String = d.name
   def fromInteger(i: Int) = new Priority(i)
+
+  def default = new Priority("medium")
 }
 
 class Priority(val name: String) {

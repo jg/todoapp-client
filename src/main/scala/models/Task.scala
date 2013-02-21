@@ -52,7 +52,7 @@ object Task {
     if (isPresent("due_date")) task.due_date = Some(Date.fromMillis(cursor.getLong(i("due_date"))))
     if (isPresent("due_time")) task.due_time = Some(Time.fromMinutes(cursor.getInt(i("due_time"))))
     if (isPresent("repeat")) task.repeat = Some(Period(cursor.getString(columnIndex("repeat"))))
-    if (isPresent("priority")) task.priority = Some(Priority.fromInteger(cursor.getInt(columnIndex("priority"))))
+    task.priority = Priority.fromInteger(cursor.getInt(columnIndex("priority")))
     if (isPresent("task_list")) task.task_list = cursor.getString(columnIndex("task_list"))
 
     task
@@ -68,7 +68,7 @@ class Task(val _title: String) {
 
   var due_date: Option[Date] = None
   var due_time: Option[Time] = None
-  var priority: Option[Priority] = None
+  var priority: Priority = Priority.default
   var repeat: Option[Period] = None
   var task_list: String = "master"
   def title = _title
@@ -85,7 +85,7 @@ class Task(val _title: String) {
     values.put("updated_at", updated_at)
     if (!due_date.isEmpty) values.put("due_date", due_date.get)
     if (!due_time.isEmpty) values.put("due_time", due_time.get.toInt: Integer)
-    if (!priority.isEmpty) values.put("priority", priority.get.toInt: Integer)
+    values.put("priority", priority.toInt: Integer)
     completed_at match {
       case Some(date) => values.put("completed_at", date)
       case None => values.putNull("completed_at")

@@ -12,6 +12,7 @@ import android.widget.Toast
 
 class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(context, cursor) {
   var checkBoxStateChangeHandler: Option[(CompoundButton, Boolean) => Unit] = None
+  var taskClickHandler: Option[(Int) => Unit] = None
 
   // TODO: this smells
   def showIncompleteTasks(context: Context) {
@@ -41,6 +42,7 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
   }
 
   def registerCheckBoxStateChangeHandler(f: (CompoundButton, Boolean) => Unit) = checkBoxStateChangeHandler = Some(f)
+  def registerTaskClickHandler(f: (Int) => Unit) = taskClickHandler = Some(f)
 
   override def bindView(view: View, context: Context, cursor: Cursor) {
     val task = Task.fromCursor(cursor)
@@ -49,7 +51,7 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
       val v = view.findViewById(R.id.taskPriority)
 
       if (!task.priority.isEmpty) {
-        task.priority.get.toString match {
+        task.priority.toString match {
           case "high" => v.setBackgroundColor(Color.RED)
           case "low"  => v.setBackgroundColor(Color.BLUE)
           case _      => v.setBackgroundColor(Color.BLACK)
@@ -77,9 +79,11 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
       v.setText(task.task_list)
     }
 
-    def setTaskTitleClickListener() = {
+    def setTaskClickListener() = {
       val v = view.findViewById(R.id.taskTitle)
-      v.setOnClickListener((v: View) => pr("task title clicked"))
+      val position = cursor.getPosition()
+      v.setOnClickListener((v: View) =>
+        for (handler <- taskClickHandler) handler(position))
     }
 
     def setTaskCheckboxToggleListener() = {
@@ -97,7 +101,7 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
     setTaskPriority()
     setTaskDueDate()
     setTaskList()
-    setTaskTitleClickListener()
+    setTaskClickListener()
     setTaskCheckboxToggleListener()
   }
 

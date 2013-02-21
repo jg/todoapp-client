@@ -3,13 +3,14 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent">
 
+    <!-- TaskTitle -->
     <TextView
       android:layout_width="fill_parent"
       android:layout_height="wrap_content"
       android:text="Task Title"
     />
     <EditText
-        android:id="@+id/title"
+        android:id="@+id/task_title"
         android:inputType="text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -19,12 +20,13 @@
         android:layout_marginBottom="4dp"
         android:hint="New Task Title" />
 
+    <!-- TaskList -->
     <TextView
       android:layout_width="fill_parent"
       android:layout_height="wrap_content"
       android:text="List"
     />
-    <Spinner
+    <com.android.todoapp.Spinner
       android:id="@+id/task_list"
       android:layout_width="fill_parent"
       android:layout_height="wrap_content" />
@@ -34,27 +36,45 @@
       android:layout_height="wrap_content"
       android:text="Priority"
     />
-    <Spinner
-      android:id="@+id/priority"
+    <com.android.todoapp.Spinner
+      android:id="@+id/task_priority"
       android:layout_width="fill_parent"
       android:layout_height="wrap_content" />
 
+    <!-- DueDate -->
     <TextView
       android:layout_width="fill_parent"
       android:layout_height="wrap_content"
-      android:text="Due"
+      android:text="Due Time"
     />
-    <Spinner
+    <Button
       android:id="@+id/due_date"
+      android:inputType="text"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:editable="false" />
+
+    <!-- DueTime -->
+    <TextView
+      android:layout_width="fill_parent"
+      android:layout_height="wrap_content"
+      android:text="Due Time"
+    />
+    <Button
+      android:id="@+id/due_time"
+      android:inputType="text"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:editable="false" />
+
+    <!-- TaskRepeat -->
+    <TextView
+      android:layout_width="fill_parent"
+      android:layout_height="wrap_content"
+      android:text="Repeat"
+    />
+    <com.android.todoapp.Spinner
+      android:id="@+id/task_repeat"
       android:layout_width="fill_parent"
       android:layout_height="wrap_content" />
-
-    <Button
-      android:id="@+id/add_task"
-      android:layout_width="fill_parent"
-      android:layout_height="fill_parent"
-      android:text="Save"
-      android:layout_gravity="bottom"
-      android:layout_marginTop="20dp"
-      android:onClick="saveTaskButtonHandler" />
 </LinearLayout>

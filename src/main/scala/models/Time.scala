@@ -15,4 +15,6 @@ class Time(s: String) {
 
   def toInt = minutes
 
+  override def toString = s
+
 }

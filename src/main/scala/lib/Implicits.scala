@@ -4,6 +4,7 @@ import android.widget.{TextView, Button, ListView, ListAdapter}
 import android.view.{View, KeyEvent}
 import android.widget.CompoundButton.OnCheckedChangeListener
 import android.widget.CompoundButton
+import android.view.View.OnFocusChangeListener
 
 object Implicits {
   implicit def date2long(d: Date): Long = d.getMillis
@@ -22,6 +23,10 @@ object Implicits {
 
   implicit def LambdaToOnCheckedChangeListener(f: (CompoundButton, Boolean) => Unit) = new OnCheckedChangeListener() {
     def onCheckedChanged(buttonView: CompoundButton, isChecked: Boolean) = f(buttonView, isChecked)
+  }
+
+  implicit def LambdaToOnFocusChangeListener(f: (View, Boolean) => Unit) = new View.OnFocusChangeListener() {
+    def onFocusChange(v: View, hasFocus: Boolean) = f(v, hasFocus)
   }
 
 }
