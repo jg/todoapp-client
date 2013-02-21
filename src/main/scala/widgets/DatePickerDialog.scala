@@ -21,6 +21,7 @@ class DatePickerDialog(context: Context, prompt: String, listener: (String) => U
     val builder = new AlertDialog.Builder(context)
     val view = inflater.inflate(R.layout.date_picker, null)
     val calendarView = view.findViewById(R.id.calendar).asInstanceOf[CalendarView]
+    if (hasSelection) calendarView.setDate(Date(selection.get).getMillis)
     builder.setView(view)
            .setPositiveButton("Pick", new DialogInterface.OnClickListener() {
              override def onClick(dialog: DialogInterface, id: Int) {
