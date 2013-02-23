@@ -14,13 +14,16 @@ import android.widget.TimePicker
 import java.util.Calendar
 import android.text.format.DateFormat
 
-class TimePickerDialog(context: Context, listener: (Int, Int) => Unit) extends DialogFragment
+class TimePickerDialog(context: Context, listener: (Time) => Unit) extends DialogFragment
   with TimePickerDialog.OnTimeSetListener
-  with SelectionAccess[String] {
+  with SelectionAccess[Time] {
+    var initialTime: Option[Time] = None
+    var dialog: Option[android.app.TimePickerDialog] = None
+
     def handler = new TimePickerDialog.OnTimeSetListener {
       def onTimeSet(view: TimePicker, hour: Int, minute: Int) = {
-        setSelection(hour.toString + ":" + minute.toString)
-        listener(hour, minute)
+        setSelection(Time(hour, minute))
+        listener(Time(hour, minute))
       }
     }
 
@@ -29,19 +32,19 @@ class TimePickerDialog(context: Context, listener: (Int, Int) => Unit) extends D
         val c = Calendar.getInstance();
         val (hour: Int, minute: Int) = (Calendar.HOUR_OF_DAY, Calendar.MINUTE)
 
-        val dialog = new android.app.TimePickerDialog(context, handler, hour, minute, DateFormat.is24HourFormat(getActivity()));
-        if (hasSelection) {
-          val lst = selection.get.split(":") collect {case i:String => i.toInt}
-          dialog.updateTime(lst.first, lst.last)
-        }
-        // TODO: it should grab focus on create
-
-        dialog
+        dialog = Some(new android.app.TimePickerDialog(context, handler, hour, minute, DateFormat.is24HourFormat(getActivity())))
+        if (hasSelection) 
+          dialog.get.updateTime(selection.get.hour, selection.get.minutes)
+        else if (!initialTime.isEmpty) 
+          dialog.get.updateTime(initialTime.get.hour, initialTime.get.minutes)
+        dialog.get
     }
 
     def onTimeSet(view: TimePicker, hour: Int, minute: Int) = {
-      setSelection(hour.toString + ":" + minute.toString)
-      listener(hour, minute)
+      setSelection(Time(hour, minute))
+      listener(Time(hour, minute))
     }
+
+    def setInitialTime(time: Time) = { initialTime = Some(time) }
 
 }

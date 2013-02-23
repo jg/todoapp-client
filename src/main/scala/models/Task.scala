@@ -52,14 +52,14 @@ object Task {
     if (isPresent("due_date")) task.due_date = Some(Date.fromMillis(cursor.getLong(i("due_date"))))
     if (isPresent("due_time")) task.due_time = Some(Time.fromMinutes(cursor.getInt(i("due_time"))))
     if (isPresent("repeat")) task.repeat = Some(Period(cursor.getString(columnIndex("repeat"))))
-    task.priority = Priority.fromInteger(cursor.getInt(columnIndex("priority")))
+    task.priority = Priority.fromInt(cursor.getInt(columnIndex("priority")))
     if (isPresent("task_list")) task.task_list = cursor.getString(columnIndex("task_list"))
 
     task
   }
 }
 
-class Task(val _title: String) {
+class Task(var title: String) {
   var id: Long = -1
   var completed_at: Option[Date] = None
 
@@ -71,7 +71,6 @@ class Task(val _title: String) {
   var priority: Priority = Priority.default
   var repeat: Option[Period] = None
   var task_list: String = "master"
-  def title = _title
 
   override def toString = title
 

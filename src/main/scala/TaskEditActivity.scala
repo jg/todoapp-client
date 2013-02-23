@@ -8,17 +8,20 @@ import com.android.todoapp.Implicits._
 import android.widget.Toast
 import android.support.v4.app.FragmentActivity
 import android.view.View.OnFocusChangeListener
+import android.content.Intent
 
 class TaskEditActivity extends FragmentActivity with Finders {
   var task: Task = _
+
+  val NotSet = "Not set"
+
   lazy val dateSelectionDialog = {
-    val listener = (selection: String) =>
-      setDueDate(Some(Date(selection)))
+    val listener = (selection: Date) =>
+      setDueDate(Some(selection))
     new DatePickerDialog(this, "Date", listener)
   }
   lazy val timeSelectionDialog = {
-    val listener = (hour: Int, minutes: Int) =>
-      setDueTime(Some(Time.fromMinutes(hour*60+minutes)))
+    val listener = (time: Time) => setDueTime(Some(time))
     new TimePickerDialog(this, listener)
   }
 
@@ -40,22 +43,12 @@ class TaskEditActivity extends FragmentActivity with Finders {
 
   def setDueDate(date: Option[Date]) = {
     val el = findButton(R.id.due_date)
-    el.setText(
-      if (date.isEmpty)
-        "Not set"
-      else
-        date.get.dateFormat
-    )
+    el.setText(if (date.isEmpty) NotSet else date.get.dateFormat)
   }
 
   def setDueTime(time: Option[Time]) = {
     val el = findButton(R.id.due_time)
-    el.setText(
-      if (time.isEmpty)
-        "Not set"
-      else
-        time.get.toString
-    )
+    el.setText(if (time.isEmpty) NotSet else time.get.toString)
   }
 
   def initTaskEditForm() = {
@@ -86,10 +79,39 @@ class TaskEditActivity extends FragmentActivity with Finders {
       findButton(R.id.due_time).setOnClickListener((v: View) =>
         timeSelectionDialog.show(getSupportFragmentManager(), "time-dialog"))
     }
+    def setSaveButtonHandler() = {
+      def taskPriority = Priority(findSpinner(R.id.task_priority).value)
+      def taskTitle = findEditText(R.id.task_title).getText.toString()
+      def taskList = findSpinner(R.id.task_list).value
+      def taskRepeat = {
+        val value = findSpinner(R.id.task_repeat).value
+        if (value == NotSet) None else Some(Period(value))
+      }
+      def taskDueDate = if (dateSelectionDialog.hasSelection)
+        dateSelectionDialog.selection else None
+      def taskDueTime = if (timeSelectionDialog.hasSelection)
+        timeSelectionDialog.selection else None
+
+      findButton(R.id.save).setOnClickListener((v: View) => {
+        task.priority = taskPriority
+        task.title = taskTitle
+        task.task_list = taskList
+        task.repeat = taskRepeat
+        task.due_date = taskDueDate
+        task.due_time = taskDueTime
+        task.save(this)
+        pr("Task updated")
+
+        val intent = new Intent(this, classOf[MainActivity])
+        startActivity(intent)
+      })
+    }
 
     populateTaskPrioritySpinner()
     populateTaskListSpinner()
     populateTaskRepeatSpinner()
+    for (date <- task.due_date) dateSelectionDialog.setDate(date)
+    for (time <- task.due_time) timeSelectionDialog.setInitialTime(time)
 
     setTaskTitle()
     setTaskPriority()
@@ -99,6 +121,8 @@ class TaskEditActivity extends FragmentActivity with Finders {
 
     setDueTime(task.due_time)
     setDueTimeClickHandler()
+
+    setSaveButtonHandler()
   }
 
   def pr(s: String) = Toast.makeText(this, s, Toast.LENGTH_SHORT).show();

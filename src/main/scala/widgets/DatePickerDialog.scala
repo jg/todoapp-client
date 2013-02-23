@@ -10,24 +10,34 @@ import android.app.Dialog
 import android.support.v4.app.DialogFragment
 import android.view.LayoutInflater
 import android.widget.CalendarView
+import android.view.View
 
-class DatePickerDialog(context: Context, prompt: String, listener: (String) => Unit)
+class DatePickerDialog(context: Context, prompt: String, listener: (Date) => Unit)
   extends DialogFragment
-  with SelectionAccess[String] {
+  with SelectionAccess[Date] {
+  var view: Option[View] = None
 
   def inflater: LayoutInflater = context.getSystemService(Context.LAYOUT_INFLATER_SERVICE).asInstanceOf[LayoutInflater]
 
+  def calendarView: Option[CalendarView] = view match {
+    case Some(view) => Some(view.findViewById(R.id.calendar).asInstanceOf[CalendarView])
+    case None => None
+  }
+
+  def setDate(date: Date) = for (cv <- calendarView) cv.setDate(date.getMillis)
+
   override def onCreateDialog(savedInstanceState: Bundle): Dialog = {
     val builder = new AlertDialog.Builder(context)
-    val view = inflater.inflate(R.layout.date_picker, null)
-    val calendarView = view.findViewById(R.id.calendar).asInstanceOf[CalendarView]
-    if (hasSelection) calendarView.setDate(Date(selection.get).getMillis)
-    builder.setView(view)
+    view = Some(inflater.inflate(R.layout.date_picker, null))
+    if (hasSelection) setDate(selection.get)
+    builder.setView(view.get)
            .setPositiveButton("Pick", new DialogInterface.OnClickListener() {
              override def onClick(dialog: DialogInterface, id: Int) {
-               val date = Date.fromMillis(calendarView.getDate()).toString()
-               setSelection(date)
-               listener(date)
+              for (calendarView <- calendarView) {
+                 val date = Date.fromMillis(calendarView.getDate())
+                 setSelection(date)
+                 listener(date)
+               }
              }
            })
            .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {

@@ -178,11 +178,11 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
     new PickerDialog(this, priorities.asInstanceOf[Array[CharSequence]], listener)
   }
   lazy val dateSelectionDialog = {
-    val listener = (selection: String) => pr(selection)
+    val listener = (selection: Date) => ()
     new DatePickerDialog(this, "Date", listener)
   }
   lazy val timeSelectionDialog = {
-    val listener = (hour: Int, minute: Int) => pr(hour.toString() + ":" + minute.toString())
+    val listener = (time:   Time) => ()
     new TimePickerDialog(this, listener)
   }
   lazy val repeatSelectionDialog = {
@@ -210,9 +210,9 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
       if (prioritySelectionDialog.hasSelection)
         task.priority = Priority(prioritySelectionDialog.selection.get)
       if (dateSelectionDialog.hasSelection)
-        task.due_date = Some(Date(dateSelectionDialog.selection.get))
+        task.due_date = Some(dateSelectionDialog.selection.get)
       if (timeSelectionDialog.hasSelection)
-        task.due_time = Some(Time(timeSelectionDialog.selection.get))
+        task.due_time = Some(timeSelectionDialog.selection.get)
       if (repeatSelectionDialog.hasSelection)
         task.repeat   = Some(Period(repeatSelectionDialog.selection.get))
 
