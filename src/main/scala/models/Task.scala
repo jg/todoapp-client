@@ -16,7 +16,7 @@ object Task {
     "due_time"     -> "integer",
     "task_list"    -> "string",
     "priority"     -> "string",
-    "repeat"       -> "integer"
+    "repeat"       -> "string"
   )
 
   def columnIndex(fieldName: String): Int = {
@@ -84,6 +84,7 @@ class Task(var title: String) {
     values.put("updated_at", updated_at)
     if (!due_date.isEmpty) values.put("due_date", due_date.get)
     if (!due_time.isEmpty) values.put("due_time", due_time.get.toInt: Integer)
+    if (!repeat.isEmpty) values.put("repeat", repeat.get.toString)
     values.put("priority", priority.toString)
     completed_at match {
       case Some(date) => values.put("completed_at", date)

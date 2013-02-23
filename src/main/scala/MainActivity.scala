@@ -50,13 +50,13 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
       val b = findButton(id)
 
       b.setText("+")
-      b.setOnClickListener(onClickListener(addNewTaskButtonHandler))
+      b.setOnClickListener(addNewTaskButtonHandler(_: View))
     }
     def initMarkTasksAsCompleteButton(id: Int) = {
       val b = findButton(id)
 
       b.setText("✓")
-      b.setOnClickListener(onClickListener(markTaskAsCompleteHandler))
+      b.setOnClickListener(markTaskAsCompleteHandler(_: View))
     }
     def checkedItemCount(lv: ListView): Integer = {
       Range(0, lv.getChildCount()).count(lv.getChildAt(_).asInstanceOf[TaskLayout].isChecked())

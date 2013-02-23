@@ -5,6 +5,17 @@ import org.scalatest.OneInstancePerTest
 import android.content.Context
 
 class Specs extends FunSpec with ShouldMatchers with OneInstancePerTest {
+  describe("Period") {
+    it("should initialize") {
+      // Period("After a Year") should equal(Period.AfterAYear)
+    }
+
+    it(".normalize") {
+      Period.normalize("After a Year") should equal("AfterAYear")
+      Period.normalize("AfterAYear") should equal("AfterAYear")
+    }
+  }
+
   describe("Priority") {
     (new Priority(Priority.High)) should equal(Priority.High)
     (Priority("low")) should equal(Priority.Low)

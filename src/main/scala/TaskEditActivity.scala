@@ -59,18 +59,14 @@ class TaskEditActivity extends FragmentActivity with Finders {
       val index = priorities.indexOf(priority)
       findSpinner(R.id.task_priority).setSelection(index)
     }
-    def setTaskRepeat() = {
-      findSpinner(R.id.task_repeat).setSelection(
-        if (task.repeat.isEmpty)
-          0
-        else {
-          val repeat_periods = getResources().getStringArray(R.array.task_repeat)
-          repeat_periods.indexOf(task.repeat.get)
-      })
-    }
     def populateTaskListSpinner() = findSpinner(R.id.task_list).fromResource(R.array.task_lists)
     def populateTaskPrioritySpinner() = findSpinner(R.id.task_priority).fromResource(R.array.task_priorities)
-    def populateTaskRepeatSpinner() = findSpinner(R.id.task_repeat).fromResource(R.array.task_repeat)
+    def populateTaskRepeatSpinner() = {
+      val spinner = findSpinner(R.id.task_repeat)
+      spinner.fromArray(Period.stringValues)
+      val index = Period.stringValues.indexOf(task.repeat.get.toString)
+      spinner.setSelection(index)
+    }
     def setDueDateClickHandler() = {
       findButton(R.id.due_date).setOnClickListener((v: View) =>
         dateSelectionDialog.show(getSupportFragmentManager(), "date-dialog"))
@@ -85,7 +81,12 @@ class TaskEditActivity extends FragmentActivity with Finders {
       def taskList = findSpinner(R.id.task_list).value
       def taskRepeat = {
         val value = findSpinner(R.id.task_repeat).value
-        if (value == NotSet) None else Some(Period(value))
+        if (value == NotSet)
+            None
+        else {
+          val period = Period(value)
+          Some(period)
+        }
       }
       def taskDueDate = if (dateSelectionDialog.hasSelection)
         dateSelectionDialog.selection else None
