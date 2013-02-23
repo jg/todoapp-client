@@ -62,8 +62,8 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
     }
 
     def setTaskDueDate() = {
+      val v = view.findViewById(R.id.dueDate).asInstanceOf[TextView]
       if (!task.due_date.isEmpty) {
-        val v = view.findViewById(R.id.dueDate).asInstanceOf[TextView]
         val date = task.due_date.get
         v.setText(
           if (date.isToday)
@@ -71,6 +71,8 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
           else
             date.dayMonthFormat
         )
+      } else {
+        v.setText("")
       }
     }
 
