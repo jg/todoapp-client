@@ -5,6 +5,12 @@ import org.scalatest.OneInstancePerTest
 import android.content.Context
 
 class Specs extends FunSpec with ShouldMatchers with OneInstancePerTest {
+  describe("Priority") {
+    (new Priority(Priority.high)) should equal(Priority.high)
+    (Priority("low")) should equal(Priority.low)
+    (Priority("high")) should equal(Priority.high)
+    (Priority("stuffs")) should equal(Priority.normal)
+  }
   describe("Time") {
     val time = new Time(8, 12)
 
