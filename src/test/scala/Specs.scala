@@ -6,10 +6,10 @@ import android.content.Context
 
 class Specs extends FunSpec with ShouldMatchers with OneInstancePerTest {
   describe("Priority") {
-    (new Priority(Priority.high)) should equal(Priority.high)
-    (Priority("low")) should equal(Priority.low)
-    (Priority("high")) should equal(Priority.high)
-    (Priority("stuffs")) should equal(Priority.normal)
+    (new Priority(Priority.High)) should equal(Priority.High)
+    (Priority("low")) should equal(Priority.Low)
+    (Priority("high")) should equal(Priority.High)
+    (Priority("stuffs")) should equal(Priority.Normal)
   }
   describe("Time") {
     val time = new Time(8, 12)

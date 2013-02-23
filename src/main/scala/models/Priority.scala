@@ -5,14 +5,15 @@ import scala.collection.mutable.LinkedHashMap
 
 object Priority extends Enumeration {
   type PriorityValue = Value
-  val high, low, normal = Value
+  val High, Low, Normal = Value
 
   def apply(s: String) = {
     new Priority(
-      try
-        withName(s)
-      catch  {
-        case e: java.util.NoSuchElementException => Priority.normal
+      try {
+        val normalized = s(0).toUpperCase + s.substring(1, s.length).toLowerCase()
+        withName(normalized)
+      } catch  {
+        case e: java.util.NoSuchElementException => Priority.Normal
       }
     )
   }

@@ -68,7 +68,7 @@ class Task(var title: String) {
 
   var due_date: Option[Date] = None
   var due_time: Option[Time] = None
-  var priority: Priority = new Priority(Priority.normal)
+  var priority: Priority = new Priority(Priority.Normal)
   var repeat: Option[Period] = None
   var task_list: String = "master"
 
