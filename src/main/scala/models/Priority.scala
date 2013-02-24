@@ -18,6 +18,8 @@ object Priority extends Enumeration {
     )
   }
   implicit def priority2string(d: Priority): String = d.toString
+
+  def stringValues: Array[String] = values.toArray.map(_.toString)
 }
 
 

@@ -30,7 +30,8 @@ class TimePickerDialog(context: Context, listener: (Time) => Unit) extends Dialo
     override def onCreateDialog(savedInstanceState: Bundle) = {
         // Use the current time as the default values for the picker
         val c = Calendar.getInstance();
-        val (hour: Int, minute: Int) = (Calendar.HOUR_OF_DAY, Calendar.MINUTE)
+        val hour = c.get(Calendar.HOUR_OF_DAY)
+        val minute = c.get(Calendar.MINUTE)
 
         dialog = Some(new android.app.TimePickerDialog(context, handler, hour, minute, DateFormat.is24HourFormat(getActivity())))
         if (hasSelection) 

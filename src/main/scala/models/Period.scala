@@ -2,7 +2,7 @@ package com.android.todoapp
 
 object Period extends Enumeration {
   type PeriodValue = Value
-  val EveryDay, EveryWeek, EveryTwoWeeks, EveryMonth, EveryYear, AfterADay, AfterAWeek, AfterTwoWeeks, AfterAMonth, AfterAYear, NotSet = Value
+  val NotSet, EveryDay, EveryWeek, EveryTwoWeeks, EveryMonth, EveryYear, AfterADay, AfterAWeek, AfterTwoWeeks, AfterAMonth, AfterAYear = Value
 
   def capitalize(s: String) = { s(0).toUpperCase + s.substring(1, s.length).toLowerCase }
 
@@ -23,9 +23,7 @@ object Period extends Enumeration {
     )
   }
 
-  def stringValues: Array[String] = {
-    values.map(_.toString).toArray[String]
-  }
+  def stringValues: Array[String] = values.toArray.map(_.toString)
 }
 
 import Period._

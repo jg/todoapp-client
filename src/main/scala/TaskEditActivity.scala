@@ -53,19 +53,26 @@ class TaskEditActivity extends FragmentActivity with Finders {
 
   def initTaskEditForm() = {
     def setTaskTitle() = findEditText(R.id.task_title).setText(task.title)
-    def setTaskPriority() = {
-      val priority = task.priority.toString
-      val priorities = getResources().getStringArray(R.array.task_priorities)
-      val index = priorities.indexOf(priority)
-      findSpinner(R.id.task_priority).setSelection(index)
-    }
     def populateTaskListSpinner() = findSpinner(R.id.task_list).fromResource(R.array.task_lists)
-    def populateTaskPrioritySpinner() = findSpinner(R.id.task_priority).fromResource(R.array.task_priorities)
-    def populateTaskRepeatSpinner() = {
-      val spinner = findSpinner(R.id.task_repeat)
-      spinner.fromArray(Period.stringValues)
-      val index = Period.stringValues.indexOf(task.repeat.get.toString)
+    def populateTaskPrioritySpinner() = {
+      // populate
+      val spinner = findSpinner(R.id.task_priority)
+      val priorities = Priority.stringValues
+      spinner.fromArray(priorities)
+
+      // set value
+      val priority = task.priority.toString
+      val index = priorities.indexOf(priority)
       spinner.setSelection(index)
+    }
+    def populateTaskRepeatSpinner() = {
+        val spinner = findSpinner(R.id.task_repeat)
+        spinner.fromArray(Period.stringValues)
+
+        for (repeat <- task.repeat) {
+          val index = Period.stringValues.indexOf(repeat.toString)
+          spinner.setSelection(index)
+        }
     }
     def setDueDateClickHandler() = {
       findButton(R.id.due_date).setOnClickListener((v: View) =>
@@ -115,7 +122,6 @@ class TaskEditActivity extends FragmentActivity with Finders {
     for (time <- task.due_time) timeSelectionDialog.setInitialTime(time)
 
     setTaskTitle()
-    setTaskPriority()
 
     setDueDate(task.due_date)
     setDueDateClickHandler()

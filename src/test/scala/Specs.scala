@@ -21,6 +21,8 @@ class Specs extends FunSpec with ShouldMatchers with OneInstancePerTest {
     (Priority("low")) should equal(Priority.Low)
     (Priority("high")) should equal(Priority.High)
     (Priority("stuffs")) should equal(Priority.Normal)
+    (Priority("Normal")) should equal(Priority.Normal)
+    (Priority("High")) should equal(Priority.High)
   }
   describe("Time") {
     val time = new Time(8, 12)
