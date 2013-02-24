@@ -3,7 +3,9 @@
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent">
+    android:layout_height="fill_parent"
+    android:id="@+id/container"
+    >
 
   <TextView
     android:id="@+id/title"
@@ -129,32 +131,28 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="priority"
-            android:layout_gravity="bottom"
-            android:onClick="priorityButtonHandler" />
+            android:layout_gravity="bottom" />
           <Button
             android:id="@+id/date"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="date"
-            android:layout_gravity="bottom"
-            android:onClick="dateButtonHandler" />
+            android:layout_gravity="bottom" />
           <Button
             android:id="@+id/time"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="time"
-            android:layout_gravity="bottom"
-            android:onClick="timeButtonHandler" />
+            android:layout_gravity="bottom" />
           <Button
             android:id="@+id/repeat"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="repeat"
-            android:layout_gravity="bottom"
-            android:onClick="repeatButtonHandler" />
+            android:layout_gravity="bottom" />
 
         </LinearLayout>
       </RelativeLayout>

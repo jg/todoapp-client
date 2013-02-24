@@ -23,6 +23,8 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
   var context: Context   = _
   var listView: ListView = _
 
+  var newTaskForm: NewTaskForm = _
+
   override def onCreate(bundle: Bundle) {
     super.onCreate(bundle)
     setContentView(R.layout.main)
@@ -35,7 +37,8 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
     initTabs()
     adapter.showIncompleteTasks(context)
 
-    initAddNewTaskView()
+    newTaskForm = new NewTaskForm(this, findViewById(R.id.container), getResources(), getSupportFragmentManager())
+
   }
   override def onDestroy() = TaskTable(this).close()
 
@@ -127,7 +130,7 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
 
   def items(lv: ListView) = Range(0, lv.getChildCount()).map(lv.getChildAt(_))
 
-  override def onBackPressed() = hideTaskNewForm()
+  override def onBackPressed() = newTaskForm.hide()
 
   def markTaskAsCompleteHandler(view: View) {
     def checkedItems(lv: ListView) = {
@@ -152,11 +155,13 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
     unCheckAllItems(listView)
     initCommandButton(listView, R.id.commandButton)
   }
+
   def synchronizeButtonHandler(view: View) = {
     Log.i("clicked synchronize!")
     val collection = Collection("http://polar-scrubland-5755.herokuapp.com", "juliusz.gonera@gmail.com", "testtest")
     collection.links.map(links => links.find(_.rel == "tasks").map(l => pr(l.href)))
   }
+
   def addNewTaskButtonHandler(view: View) = {
     def showNewTaskForm() = {
       findViewById(R.id.tasksNew).setVisibility(View.VISIBLE)
@@ -168,75 +173,8 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
     showNewTaskForm()
   }
 
-  // New Task Form Handlers
-
-  // Dialogs
-
-  lazy val prioritySelectionDialog: PickerDialog = {
-    val priorities = getResources().getStringArray(R.array.task_priorities)
-    val listener = (selection: String) => pr(selection)
-    new PickerDialog(this, priorities.asInstanceOf[Array[CharSequence]], listener)
-  }
-  lazy val dateSelectionDialog = {
-    val listener = (selection: Date) => ()
-    new DatePickerDialog(this, "Date", listener)
-  }
-  lazy val timeSelectionDialog = {
-    val listener = (time:   Time) => ()
-    new TimePickerDialog(this, listener)
-  }
-  lazy val repeatSelectionDialog = {
-    val repeat_list = getResources().getStringArray(R.array.task_repeat).asInstanceOf[Array[CharSequence]]
-    val listener = (selection: String) => pr(selection)
-    new PickerDialog(this, repeat_list, listener)
-  }
-  lazy val selectionDialogs = List(prioritySelectionDialog, dateSelectionDialog, timeSelectionDialog, repeatSelectionDialog)
-  def priorityButtonHandler(view: View) = prioritySelectionDialog.show(getSupportFragmentManager(), "priority-dialog")
-  def dateButtonHandler(view: View) = dateSelectionDialog.show(getSupportFragmentManager(), "date-dialog")
-  def timeButtonHandler(view: View) = timeSelectionDialog.show(getSupportFragmentManager(), "time-dialog")
-  def repeatButtonHandler(view: View) = repeatSelectionDialog.show(getSupportFragmentManager(), "repeat-dialog")
-
-  // New Task Form Initializers
-
-  def initAddNewTaskView() = {
-    // handle task title input enter keypress
-    val input = findViewById(R.id.task_title_input).asInstanceOf[TextView]
-    input.setOnEditorActionListener(onEditorActionListener(handleTaskTitleInputEnterKey))
-  }
-  def handleTaskTitleInputEnterKey(v: TextView, actionId: Int, event: KeyEvent) = {
-    def addNewTask(title: String) = {
-      val task = new Task(title)
-
-      if (prioritySelectionDialog.hasSelection)
-        task.priority = Priority(prioritySelectionDialog.selection.get)
-      if (dateSelectionDialog.hasSelection)
-        task.due_date = Some(dateSelectionDialog.selection.get)
-      if (timeSelectionDialog.hasSelection)
-        task.due_time = Some(timeSelectionDialog.selection.get)
-      if (repeatSelectionDialog.hasSelection)
-        task.repeat   = Some(Period(repeatSelectionDialog.selection.get))
-
-      Tasks.add(this, task)
-      pr("New Task Added")
-    }
-
-    val title = findViewById(R.id.task_title_input).asInstanceOf[TextView]
-    if (title.length > 0)  {
-      hideTaskNewForm()
-      addNewTask(title)
-      selectionDialogs.foreach(_.clearSelection()) // clear previous dialog selections
-    }
-
-    true
-  }
-  def hideTaskNewForm() = {
-    findViewById(R.id.tasksNew).setVisibility(View.GONE)
-    hideKeyboard(findEditText(R.id.task_title_input).getWindowToken())
-  }
-
-  // Utility functions
-
   def adapter = listView.getAdapter()
+
   def pr(s: String) = Toast.makeText(this, s, Toast.LENGTH_SHORT).show();
 
 }
