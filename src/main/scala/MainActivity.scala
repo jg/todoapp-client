@@ -34,10 +34,11 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
     initListView()
     initCommandButton(listView, R.id.commandButton)
     initSyncButton(listView, R.id.synchronizeButton)
-    initTabs()
     adapter.showIncompleteTasks(context)
 
-    newTaskForm = new NewTaskForm(this, findViewById(R.id.container), getResources(), getSupportFragmentManager())
+    val container = findViewById(R.id.container)
+    new Tabs(this, container, adapter)
+    newTaskForm = new NewTaskForm(this, container, getResources(), getSupportFragmentManager())
 
   }
   override def onDestroy() = TaskTable(this).close()
@@ -86,42 +87,6 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
     })
 
     listView.setAdapter(adapter)
-  }
-
-  def initTabs() = {
-    object Tabs {
-      val IncompleteTasks = "incomplete"
-      val CompletedTasks = "completed"
-    }
-
-    def createTabView(context: Context, text: String): View = {
-      val view = LayoutInflater.from(context).inflate(R.layout.tabs_bg, null);
-      val tv =  view.findViewById(R.id.tabsText).asInstanceOf[TextView]
-      tv.setText(text)
-      view
-    }
-
-    def setupTab(tabHost: TabHost, view: View, tag: String) {
-      val tabview = createTabView(tabHost.getContext(), tag)
-
-      val setContent = tabHost.newTabSpec(tag).setIndicator(tabview).setContent(new TabContentFactory() {
-          def createTabContent(tag: String): View = view
-      })
-      tabHost.addTab(setContent)
-    }
-
-    val tabHost = findViewById(android.R.id.tabhost).asInstanceOf[TabHost]
-    tabHost.setup();
-    tabHost.getTabWidget().setDividerDrawable(R.drawable.tab_divider);
-    tabHost.setOnTabChangedListener(new TabHost.OnTabChangeListener() {
-      def onTabChanged(tabId: String) = tabId match {
-        case Tabs.IncompleteTasks => adapter.showIncompleteTasks(context)
-        case Tabs.CompletedTasks => adapter.showCompletedTasks(context)
-      }
-    })
-
-    setupTab(tabHost, new TextView(this), Tabs.IncompleteTasks);
-    setupTab(tabHost, new TextView(this), Tabs.CompletedTasks);
   }
 
   // Button handlers
