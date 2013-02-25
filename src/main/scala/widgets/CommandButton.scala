@@ -19,32 +19,20 @@ import android.content.DialogInterface.OnClickListener
 import com.android.todoapp.Implicits._
 import com.android.todoapp.Utils._
 
-class CommandButton(context: Context, view: View, listView: ListView, id: Int) {
+class CommandButton(context: Context, view: View, taskList: TaskListView, id: Int) {
   init(id)
 
   def init(id: Int) = {
-    if (checkedItemCount(listView) > 0) {
+    if (taskList.checkedItemCount > 0) {
       initMarkTasksAsCompleteButton(id)
     } else {
       initAddNewTaskButton(id)
     }
   }
 
-
-  private def checkedItems(lv: ListView) = {
-    Range(0, lv.getChildCount())
-      .filter(lv.getChildAt(_).asInstanceOf[TaskLayout].isChecked())
-      .map(lv.getAdapter().getTask(_))
-  }
-
   private def markTask(context: Context, task: Task) {
     task.markAsCompleted()
     task.save(context)
-  }
-
-  private def unCheckAllItems(v: View) = {
-    val views = Range(0, listView.getChildCount()).map(listView.getChildAt(_))
-    views.map(_.asInstanceOf[TaskLayout].setChecked(false))
   }
 
   private def initAddNewTaskButton(id: Int) = {
@@ -62,8 +50,7 @@ class CommandButton(context: Context, view: View, listView: ListView, id: Int) {
   }
 
   private def markTaskAsCompleteHandler(clickedView: View) {
-
-    val items = checkedItems(listView).map(markTask(context,  _))
+    val items = taskList.checkedItems.map(markTask(context,  _))
     Tasks.refresh(context)
 
     if (items.length == 1)
@@ -71,7 +58,7 @@ class CommandButton(context: Context, view: View, listView: ListView, id: Int) {
     else
       Util.pr(context, items.length + " tasks marked as completed")
 
-    unCheckAllItems(listView)
+    taskList.unCheckAllItems()
     init(R.id.commandButton)
   }
 
@@ -82,10 +69,6 @@ class CommandButton(context: Context, view: View, listView: ListView, id: Int) {
     input.setText("")
     input.requestFocus()
     Util.showKeyboard(context)
-  }
-
-  private def checkedItemCount(lv: ListView): Integer = {
-    Range(0, lv.getChildCount()).count(lv.getChildAt(_).asInstanceOf[TaskLayout].isChecked())
   }
 
 }

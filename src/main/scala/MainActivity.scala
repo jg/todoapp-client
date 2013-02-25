@@ -21,7 +21,7 @@ import com.android.todoapp.Utils._
 
 class MainActivity extends FragmentActivity with TypedActivity with ActivityExtensions {
   var context: Context   = _
-  var listView: ListView = _
+  var taskList: TaskListView = _
 
   var newTaskForm: NewTaskForm = _
   var commandButton: CommandButton = _
@@ -30,17 +30,22 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
     super.onCreate(bundle)
     setContentView(R.layout.main)
 
+    // Init widgets
     setTitle()
     context = this
-    initListView()
-    initSyncButton(listView, R.id.synchronizeButton)
-    adapter.showIncompleteTasks(context)
+    taskList = new TaskListView(context, findViewById(R.id.taskList).asInstanceOf[ListView])
+
 
     val container = findViewById(R.id.container)
-
     new Tabs(this, container)
     newTaskForm = new NewTaskForm(this, container, getResources(), getSupportFragmentManager())
-    commandButton = new CommandButton(context, container, listView, R.id.commandButton)
+    commandButton = new CommandButton(context, container, taskList, R.id.commandButton)
+    new PostponeButton(context, findButton(R.id.postponeButton),  getSupportFragmentManager())
+
+
+    val adapter = Tasks.adapter(context)
+    adapter.registerCheckBoxStateChangeHandler((buttonView: CompoundButton, isChecked: Boolean) =>
+      commandButton.init(R.id.commandButton))
 
   }
   override def onDestroy() = TaskTable(this).close()
@@ -51,35 +56,15 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
     textView.setText("master")
   }
 
-  def initSyncButton(listView: ListView, id: Int) = findButton(id).setOnClickListener(onClickListener(synchronizeButtonHandler))
-
-  def initListView() = {
-    listView = findListView(R.id.taskList)
-
-    val adapter = Tasks.adapter(context)
-
-    adapter.registerCheckBoxStateChangeHandler((buttonView: CompoundButton, isChecked: Boolean) =>
-      commandButton.init(R.id.commandButton))
-
-    adapter.registerTaskClickHandler((taskCursorPosition: Int) =>  {
-      val intent = new Intent(this, classOf[TaskEditActivity])
-      intent.putExtra("taskPosition", taskCursorPosition);
-      startActivity(intent)
-    })
-
-    listView.setAdapter(adapter)
-  }
-
-  // Button handlers
-
-
   override def onBackPressed() = newTaskForm.hide()
+
+  /*
+  def initSyncButton(listView: ListView, id: Int) = findButton(id).setOnClickListener(onClickListener(synchronizeButtonHandler))
 
   def synchronizeButtonHandler(view: View) = {
     Log.i("clicked synchronize!")
     val collection = Collection("http://polar-scrubland-5755.herokuapp.com", "juliusz.gonera@gmail.com", "testtest")
     collection.links.map(links => links.find(_.rel == "tasks").map(l => Util.pr(this, l.href)))
   }
-  def adapter = listView.getAdapter()
-
+  */
 }
