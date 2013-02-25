@@ -6,9 +6,7 @@ import android.widget.Toast
 
 import android.app.Application
 
-class App extends Application {}
-/*
-object App {
+object Util {
   def showKeyboard(context: Context) = {
     val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE).asInstanceOf[InputMethodManager]
     imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, 0)
@@ -22,4 +20,3 @@ object App {
   def pr(context: Context, s: String) = Toast.makeText(context, s, Toast.LENGTH_SHORT).show();
 
 }
-*/
