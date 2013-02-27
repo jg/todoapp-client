@@ -9,6 +9,7 @@ import com.android.todoapp.Implicits._
 import android.graphics.Color
 import com.android.todoapp.Utils._
 import android.widget.Toast
+import android.graphics.Paint
 
 class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(context, cursor) {
   var checkBoxStateChangeHandler: Option[(CompoundButton, Boolean) => Unit] = None
@@ -61,19 +62,18 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
       }
     }
 
-    def setTaskDueDate() = {
-      val v = view.findViewById(R.id.dueDate).asInstanceOf[TextView]
-      if (!task.due_date.isEmpty) {
-        val date = task.due_date.get
-        v.setText(
+    def dateView = view.findViewById(R.id.dueDate).asInstanceOf[TextView]
+
+    def setDate(date: Option[Date]) = date match {
+      case Some(date) => {
+        dateView.setText(
           if (date.isToday)
             "Today"
           else
             date.dayMonthFormat
         )
-      } else {
-        v.setText("")
       }
+      case None => dateView.setText("")
     }
 
     def setTaskList() = {
@@ -97,14 +97,22 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
         )
     }
 
-    def setTaskTitle() = view.findViewById(R.id.taskTitle).asInstanceOf[TextView].setText(task.title)
+    def setTaskTitle() = taskTitle.setText(task.title)
+
+    def taskTitle = view.findViewById(R.id.taskTitle).asInstanceOf[TextView]
 
     setTaskTitle()
     setTaskPriority()
-    setTaskDueDate()
     setTaskList()
     setTaskClickListener()
     setTaskCheckboxToggleListener()
+    if (task.isCompleted) {
+      taskTitle.setPaintFlags(taskTitle.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG)
+      setDate(task.completed_at)
+    } else {
+      setDate(task.due_date)
+      taskTitle.setPaintFlags(0)
+    }
   }
 
   override def newView(context: Context, cursor: Cursor, parent: ViewGroup): View = {

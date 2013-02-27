@@ -103,6 +103,8 @@ class Task(var title: String) {
 
   def savedP(): Boolean = id != -1
 
+  def isCompleted = !completed_at.isEmpty
+
   def toJSON = {
   }
 
