@@ -31,13 +31,12 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
     setContentView(R.layout.main)
 
     // Init widgets
-    setTitle()
     context = this
     taskList = new TaskListView(context, findViewById(R.id.taskList).asInstanceOf[ListView])
 
 
     val container = findViewById(R.id.container)
-    new Tabs(this, container)
+    // new Tabs(this, container)
     newTaskForm = new NewTaskForm(this, container, getResources(), getSupportFragmentManager())
     commandButton = new CommandButton(context, container, taskList, R.id.commandButton)
     new PostponeButton(context, findButton(R.id.postponeButton),  getSupportFragmentManager())
@@ -49,12 +48,6 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
 
   }
   override def onDestroy() = TaskTable(this).close()
-
-  // Initializers
-  def setTitle() = {
-    val textView = findViewById(R.id.title).asInstanceOf[TextView]
-    textView.setText("master")
-  }
 
   override def onBackPressed() = newTaskForm.hide()
 

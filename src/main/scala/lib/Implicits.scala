@@ -1,10 +1,11 @@
 package com.android.todoapp
 
-import android.widget.{TextView, Button, ListView, ListAdapter}
 import android.view.{View, KeyEvent}
 import android.widget.CompoundButton.OnCheckedChangeListener
 import android.widget.CompoundButton
 import android.view.View.OnFocusChangeListener
+import android.widget._
+import android.widget.AdapterView._
 
 object Implicits {
   implicit def date2long(d: Date): Long = d.getMillis
@@ -19,6 +20,13 @@ object Implicits {
 
   implicit def LambdaToOnClickListener(f: (View) => Unit) = new View.OnClickListener() {
     def onClick(v: View) = f(v)
+  }
+
+  implicit def LambdaToOnItemSelectedListener(f: (AdapterView[_], View, Int, Long) => Unit) = new AdapterView.OnItemSelectedListener() {
+    def onItemSelected(parent: AdapterView[_], view: View, position: Int, id: Long) = 
+      f(parent, view, position, id)
+
+    def onNothingSelected(parent: AdapterView[_]) {}
   }
 
   implicit def LambdaToOnCheckedChangeListener(f: (CompoundButton, Boolean) => Unit) = new OnCheckedChangeListener() {
