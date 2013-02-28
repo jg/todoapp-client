@@ -16,10 +16,11 @@ import android.support.v4.app.DialogFragment
 import android.support.v4.app.FragmentActivity
 import android.content.DialogInterface
 import android.content.DialogInterface.OnClickListener
+
 import com.android.todoapp.Implicits._
 import com.android.todoapp.Utils._
 
-class NewTaskForm(context: Context, view: View, resources: Resources, fragmentManager: FragmentManager) {
+class NewTaskForm(context: Context, view: View, resources: Resources, fragmentManager: FragmentManager, currentTaskListSpinner: CurrentTaskListSpinner) {
   lazy val prioritySelectionDialog: PickerDialog = {
     val priorities = resources.getStringArray(R.array.task_priorities)
     val listener = (selection: String) => ()
@@ -65,6 +66,11 @@ class NewTaskForm(context: Context, view: View, resources: Resources, fragmentMa
     def addNewTask(title: String) = {
       val task = new Task(title)
 
+      task.task_list = currentTaskListSpinner.selection.get match {
+        case FilterToday => "Inbox"
+        case FilterThisWeek => "Inbox"
+        case TaskList(list) => list
+      }
       if (prioritySelectionDialog.hasSelection)
         task.priority = Priority(prioritySelectionDialog.selection.get)
       if (dateSelectionDialog.hasSelection)

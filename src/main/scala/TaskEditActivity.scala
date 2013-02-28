@@ -53,7 +53,9 @@ class TaskEditActivity extends FragmentActivity with Finders {
 
   def initTaskEditForm() = {
     def setTaskTitle() = findEditText(R.id.task_title).setText(task.title)
-    def populateTaskListSpinner() = findSpinner(R.id.task_list).fromResource(R.array.task_lists)
+    def populateTaskListSpinner() = {
+      findSpinner(R.id.task_list).fromResource(R.array.task_lists)
+    }
     def populateTaskPrioritySpinner() = {
       // populate
       val spinner = findSpinner(R.id.task_priority)

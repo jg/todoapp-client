@@ -37,7 +37,9 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
 
     val container = findViewById(R.id.container)
     new Tabs(this, container)
-    newTaskForm = new NewTaskForm(this, container, getResources(), getSupportFragmentManager())
+
+    val currentTaskListSpinner = findViewById(R.id.current_task_list).asInstanceOf[CurrentTaskListSpinner]
+    newTaskForm = new NewTaskForm(this, container, getResources(), getSupportFragmentManager(), currentTaskListSpinner)
     commandButton = new CommandButton(context, container, taskList, R.id.commandButton)
     new PostponeButton(context, findButton(R.id.postponeButton),  getSupportFragmentManager())
 
