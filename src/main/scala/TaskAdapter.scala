@@ -15,26 +15,20 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
   var checkBoxStateChangeHandler: Option[(CompoundButton, Boolean) => Unit] = None
   var taskClickHandler: Option[(Int) => Unit] = None
 
-  // TODO: this smells
-  def showIncompleteTasks(context: Context) {
-    setFilterQueryProvider(new FilterQueryProvider() {
-      def runQuery(constraint: CharSequence): Cursor = {
-        (new TaskTable(context)).db.rawQuery("select * from tasks where completed_at is null order by due_date asc, priority desc", null)
-      }
-    })
-    getFilter().filter("")
-    Tasks.refresh(context)
-  }
+  def showIncompleteTasks() =
+    filter("select * from tasks where completed_at is null" + ordering)
 
-  def showCompletedTasks(context: Context) {
-    setFilterQueryProvider(new FilterQueryProvider() {
-      def runQuery(constraint: CharSequence): Cursor = {
-        (new TaskTable(context)).db.rawQuery("select * from tasks where completed_at is not null order by due_date asc, priority desc", null)
-      }
-    })
-    getFilter().filter("")
-    Tasks.refresh(context)
-  }
+  def showCompletedTasks() =
+    filter("select * from tasks where completed_at is not null" + ordering)
+
+  def showTasksDueToday(context: Context) =
+    filter("select * from tasks where completed_at is null and due_date = date('now')" + ordering)
+
+  def showTasksDueThisWeek() =
+    filter("select * from tasks where completed_at is null and strftime('%W', due_date) = strftime('%W', 'now')" + ordering)
+
+  def showTasksInList(list: String) =
+    filter("select * from tasks where completed_at is null and task_list = '" + list + "'" + ordering)
 
   def getTask(i: Integer): Task = {
     // TODO: refactor Task#fromCursor?
@@ -123,10 +117,17 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
     v
   }
 
-  // Helpers
+  private def columnIndex(fieldName: String) = Task.columnIndex(fieldName)
 
-  def columnIndex(fieldName: String) = Task.columnIndex(fieldName)
+  private def pr(s: String) = Toast.makeText(context, s, Toast.LENGTH_SHORT).show();
 
-  def pr(s: String) = Toast.makeText(context, s, Toast.LENGTH_SHORT).show();
+  private def ordering = " order by due_date asc, priority desc"
+
+  private def filter(query: String) = {
+    setFilterQueryProvider((_:CharSequence) =>
+      (new TaskTable(context)).db.rawQuery(query, null))
+    getFilter().filter("")
+    Tasks.refresh(context)
+  }
 
 }

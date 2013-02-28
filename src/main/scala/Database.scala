@@ -16,7 +16,7 @@ object TaskTable {
   }
 }
 
-class TaskTable(context: Context) extends SQLiteOpenHelper(context, "tasks", null, 22) {
+class TaskTable(context: Context) extends SQLiteOpenHelper(context, "tasks", null, 23) {
   val db: SQLiteDatabase = getWritableDatabase()
 
   override def onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) = {

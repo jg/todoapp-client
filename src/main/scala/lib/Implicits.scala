@@ -6,6 +6,7 @@ import android.widget.CompoundButton
 import android.view.View.OnFocusChangeListener
 import android.widget._
 import android.widget.AdapterView._
+import android.database.Cursor
 
 object Implicits {
   implicit def date2long(d: Date): Long = d.getMillis
@@ -37,4 +38,9 @@ object Implicits {
     def onFocusChange(v: View, hasFocus: Boolean) = f(v, hasFocus)
   }
 
+  implicit def LambdaToFilterQueryProvider(f: (CharSequence) => Cursor) = new FilterQueryProvider() {
+    def runQuery(constraint: CharSequence): Cursor = {
+      f(constraint)
+    }
+  }
 }

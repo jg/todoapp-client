@@ -48,8 +48,8 @@ class Tabs(context: Context, view: View) {
   tabHost.getTabWidget().setDividerDrawable(R.drawable.tab_divider);
   tabHost.setOnTabChangedListener(new TabHost.OnTabChangeListener() {
     def onTabChanged(tabId: String) = tabId match {
-      case Tabs.IncompleteTasks => adapter.showIncompleteTasks(context)
-      case Tabs.CompletedTasks => adapter.showCompletedTasks(context)
+      case Tabs.IncompleteTasks => adapter.showIncompleteTasks()
+      case Tabs.CompletedTasks => adapter.showCompletedTasks()
     }
   })
 

@@ -15,12 +15,20 @@ object DefaultTaskLists extends Enumeration {
 import DefaultTaskLists._
 class CurrentTaskListSpinner(context: Context, attrs: AttributeSet) extends Spinner(context, attrs) {
   var currentFilter = DefaultTaskLists.Today
+  val adapter = Tasks.adapter(context)
 
   fromArray(stringValues)
   setSelection(stringValues.indexOf(currentFilter))
 
   setOnItemSelectedListener((parent: AdapterView[_], view: View, pos: Int, id: Long) => {
-    Util.pr(context, pos.toString)
+    val choice = stringValues(pos)
+    // Util.pr(context, stringValues(pos))
+    choice match {
+      case "Today" => adapter.showTasksDueToday(context)
+      case "Week" => adapter.showTasksDueThisWeek()
+      case list: String => adapter.showTasksInList(list)
+      case _ => ()
+    }
   })
 
   def stringValues: Array[String] = values.toArray.map(_.toString)

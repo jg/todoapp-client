@@ -23,7 +23,7 @@ class TaskListView(context: Context, listView: ListView) {
   val adapter = Tasks.adapter(context)
 
   def init() = {
-    adapter.showIncompleteTasks(context)
+    adapter.showIncompleteTasks()
 
     adapter.registerTaskClickHandler((taskCursorPosition: Int) =>  {
       val intent = new Intent(context, classOf[TaskEditActivity])
