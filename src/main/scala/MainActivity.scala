@@ -36,11 +36,10 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
 
 
     val container = findViewById(R.id.container)
-    // new Tabs(this, container)
+    new Tabs(this, container)
     newTaskForm = new NewTaskForm(this, container, getResources(), getSupportFragmentManager())
     commandButton = new CommandButton(context, container, taskList, R.id.commandButton)
     new PostponeButton(context, findButton(R.id.postponeButton),  getSupportFragmentManager())
-
 
     val adapter = Tasks.adapter(context)
     adapter.registerCheckBoxStateChangeHandler((buttonView: CompoundButton, isChecked: Boolean) =>

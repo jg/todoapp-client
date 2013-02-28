@@ -14,21 +14,38 @@ import android.graphics.Paint
 class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(context, cursor) {
   var checkBoxStateChangeHandler: Option[(CompoundButton, Boolean) => Unit] = None
   var taskClickHandler: Option[(Int) => Unit] = None
+  var currentQuery: Option[String] = None
 
-  def showIncompleteTasks() =
-    filter("select * from tasks where completed_at is null" + ordering)
+  def showIncompleteTasks() = {
+    for (query <- currentQuery) {
+      currentQuery = Some(query.replace("completed_at is not null", "completed_at is null"))
+      filter(currentQuery.get)
+    }
+  }
 
-  def showCompletedTasks() =
-    filter("select * from tasks where completed_at is not null" + ordering)
+  def showCompletedTasks() = {
+    for (query <- currentQuery) {
+      currentQuery = Some(query.replace("completed_at is null", "completed_at is not null"))
+      filter(currentQuery.get)
+    }
+  }
 
-  def showTasksDueToday(context: Context) =
-    filter("select * from tasks where completed_at is null and due_date = date('now')" + ordering)
+  def showTasksDueToday(context: Context) = {
+    currentQuery = Some("select * from tasks where completed_at is null and due_date = date('now')" + ordering)
+    filter(currentQuery.get)
+  }
 
-  def showTasksDueThisWeek() =
-    filter("select * from tasks where completed_at is null and strftime('%W', due_date) = strftime('%W', 'now')" + ordering)
+  def showTasksDueThisWeek() = {
+    currentQuery = Some("select * from tasks where completed_at is null and strftime('%W', due_date) = strftime('%W', 'now')" + ordering)
+    filter(currentQuery.get)
+  }
 
-  def showTasksInList(list: String) =
-    filter("select * from tasks where completed_at is null and task_list = '" + list + "'" + ordering)
+  def showTasksInList(list: String) = {
+    currentQuery = Some("select * from tasks where completed_at is null and task_list = '" + list + "'" + ordering)
+    filter(currentQuery.get)
+  }
+
+  def filterWihCurrentQuery() = for (query <- currentQuery) filter(query)
 
   def getTask(i: Integer): Task = {
     // TODO: refactor Task#fromCursor?

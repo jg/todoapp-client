@@ -32,5 +32,4 @@ class CurrentTaskListSpinner(context: Context, attrs: AttributeSet) extends Spin
   })
 
   def stringValues: Array[String] = values.toArray.map(_.toString)
-  // Inbox, Habits, User lists
 }

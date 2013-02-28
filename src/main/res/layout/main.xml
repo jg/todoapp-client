@@ -41,7 +41,6 @@
   <!-- "Tabs" -->
 
 
-  <!-- 
   <LinearLayout
     android:id="@+id/tabs"
     android:layout_below="@+id/commandButton"
@@ -82,12 +81,10 @@
     </TabHost>
   </LinearLayout>
 
-  -->
-
   <!-- Task List -->
 
   <ListView
-      android:layout_below="@+id/current_task_list"
+      android:layout_below="@+id/tabs"
       xmlns:android="http://schemas.android.com/apk/res/android"
       android:id="@+id/taskList"
       android:layout_width="fill_parent"
