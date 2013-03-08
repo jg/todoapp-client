@@ -13,14 +13,17 @@ object Thursday { def unapply(s: String): Boolean = s.matches("[tT]hursday") }
 object Friday { def unapply(s: String): Boolean = s.matches("[fF]riday") }
 object Saturday { def unapply(s: String): Boolean = s.matches("[sS]aturday") }
 object Sunday { def unapply(s: String): Boolean = s.matches("[sS]unday") }
+
 object StandardFormat {
   def unapply(s: String): Option[Date] = {
     try {
-      Some(new Date(DateTimeFormat.forPattern("yyyy-MM-dd").parseDateTime(s)))
+      Some(new Date(DateTimeFormat.forPattern(toString).parseDateTime(s)))
     } catch {
       case ex: IllegalArgumentException => None
     }
   }
+
+    override def toString = "yyyy-MM-dd'T'HH:mm:ss.SSS"
 }
 
 object MilisFormat {
@@ -35,6 +38,7 @@ object MilisFormat {
 
 object Date {
   implicit def date2long(d: Date): java.lang.Long = d.getMillis
+  implicit def date2string(d: Date): String = d.toString
 
   def apply(s: String) = parse(s)
 
@@ -87,6 +91,8 @@ class Date(date: DateTime) {
 
   def fullFormat = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm").print(date)
 
+  def completeFormat = DateTimeFormat.forPattern(StandardFormat.toString).print(date)
+
   def dateFormat = DateTimeFormat.forPattern("yyyy-MM-dd").print(date)
 
   def dayMonthFormat = DateTimeFormat.forPattern("dd MMM").print(date)
@@ -103,6 +109,10 @@ class Date(date: DateTime) {
     fmt.print(date) == fmt.print(new DateTime() + 1.day)
   }
 
-  def getMillis = date.getMillis()
+  def getMillis: Long = date.getMillis()
 
+  override def equals(other: Any) = other match {
+    case date: Date => completeFormat == date.completeFormat
+    case _ => false
+  }
 }

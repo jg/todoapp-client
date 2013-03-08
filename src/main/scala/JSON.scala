@@ -13,7 +13,7 @@ class JSONObject(jsonObject: org.json.JSONObject) {
     try {
       Some(jsonObject.getJSONArray(name))
     } catch {
-      case e: JSONException => None
+      case e: org.json.JSONException => None
     }
   }
 
@@ -21,7 +21,7 @@ class JSONObject(jsonObject: org.json.JSONObject) {
     try {
       Some(jsonObject.getString(name))
     } catch {
-      case e: JSONException => None
+      case e: org.json.JSONException => None
     }
   }
 }

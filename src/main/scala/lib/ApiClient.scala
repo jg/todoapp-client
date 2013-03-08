@@ -16,6 +16,8 @@ class ApiClient(rootUrl: String, userName: String, password: String) {
 
   def get(url: String): String = HttpAgent.get(url, userName, password)
 
+  def postJSON(url: String, json: String): String = HttpAgent.postJSON(url, userName, password, json)
+
   def taskUrl: Option[String] = {
     collection.links.flatMap(links =>
       links.find(_.rel == "tasks").map(link => link.href))

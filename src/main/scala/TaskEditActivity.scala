@@ -71,10 +71,7 @@ class TaskEditActivity extends FragmentActivity with Finders {
         val spinner = findSpinner(R.id.task_repeat)
         spinner.fromArray(Period.stringValues)
 
-        for (repeat <- task.repeat) {
-          val index = Period.stringValues.indexOf(repeat.toString)
-          spinner.setSelection(index)
-        }
+        for (repeat <- task.repeat) spinner.setSelection(repeat.toString)
     }
     def setDueDateClickHandler() = {
       findButton(R.id.due_date).setOnClickListener((v: View) =>
@@ -90,12 +87,8 @@ class TaskEditActivity extends FragmentActivity with Finders {
       def taskList = findSpinner(R.id.task_list).value
       def taskRepeat = {
         val value = findSpinner(R.id.task_repeat).value
-        if (value == NotSet)
-            None
-        else {
-          val period = Period(value)
-          Some(period)
-        }
+        if (value == PeriodNotSet.toString) None
+        else Some(Period(value))
       }
       def taskDueDate = if (dateSelectionDialog.hasSelection)
         dateSelectionDialog.selection else None

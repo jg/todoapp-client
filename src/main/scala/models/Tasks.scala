@@ -6,15 +6,7 @@ import android.widget.{ArrayAdapter, CursorAdapter, SimpleCursorAdapter}
 import android.database.Cursor
 
 object Tasks {
-  private[this] var adapter: Option[TaskAdapter] = None
-
-  def adapter(context: Context): TaskAdapter = adapter match {
-    case Some(taskAdapter) => taskAdapter
-    case None => {
-      adapter = Some(new TaskAdapter(context, TaskTable(context).cursor))
-      adapter.get
-    }
-  }
+  def adapter(context: Context): TaskAdapter = TaskAdapter(context, TaskTable(context).cursor)
 
   def add(c: Context, task: Task) = {
     task.id = TaskTable(c).insert(task)

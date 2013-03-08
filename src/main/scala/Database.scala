@@ -10,14 +10,16 @@ import android.database.CursorIndexOutOfBoundsException
 
 
 object TaskTable {
-  def apply(context: Context) = {
-    Log.i("TaskTable constructor invoked")
-    new TaskTable(context)
+  var taskTable: Option[TaskTable] = None
+
+  def apply(context: Context): TaskTable = {
+    if (taskTable.isEmpty) taskTable = Some(new TaskTable(context))
+    taskTable.get
   }
 }
 
-class TaskTable(context: Context) extends SQLiteOpenHelper(context, "tasks", null, 23) {
-  val db: SQLiteDatabase = getWritableDatabase()
+class TaskTable(context: Context) extends SQLiteOpenHelper(context, "todo", null, 44) {
+  var db: SQLiteDatabase = null
 
   override def onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) = {
     val q = List("drop table if exists", tableName).mkString(" ")
@@ -30,16 +32,16 @@ class TaskTable(context: Context) extends SQLiteOpenHelper(context, "tasks", nul
     db.execSQL(q)
   }
 
+  def open() = db = getWritableDatabase()
+
   def insert(task: Task) = db.insert("tasks", null, task.contentValues())
 
   def tableName = "tasks"
 
-  def update(task: Task) = {
-    val whereArgs: Array[String] = Array(task.id.toString());
-    db.update("tasks", task.contentValues(), "_id = ?", whereArgs)
+  def update(task: Task): Int = {
+    val whereArgs: Array[String] = Array(task.created_at.completeFormat);
+    db.update("tasks", task.contentValues(), "created_at = ?", whereArgs)
   }
 
-  def cursor: Cursor = {
-    db.query("tasks", null, null, null, null, null, null)
-  }
+  def cursor: Cursor = db.query("tasks", null, null, null, null, null, null)
 }

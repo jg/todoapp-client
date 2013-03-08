@@ -10,10 +10,6 @@ class Specs extends FunSpec with ShouldMatchers with OneInstancePerTest {
       // Period("After a Year") should equal(Period.AfterAYear)
     }
 
-    it(".normalize") {
-      Period.normalize("After a Year") should equal("AfterAYear")
-      Period.normalize("AfterAYear") should equal("AfterAYear")
-    }
   }
 
   describe("Priority") {

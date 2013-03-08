@@ -11,10 +11,20 @@ import com.android.todoapp.Utils._
 import android.widget.Toast
 import android.graphics.Paint
 
+object TaskAdapter {
+  var adapter: Option[TaskAdapter] = None
+
+  def apply(context: Context, cursor: Cursor): TaskAdapter = {
+    if (adapter.isEmpty) adapter = Some(new TaskAdapter(context, cursor))
+    adapter.get
+  }
+}
+
 class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(context, cursor) {
   var checkBoxStateChangeHandler: Option[(CompoundButton, Boolean) => Unit] = None
   var taskClickHandler: Option[(Int) => Unit] = None
   var currentQuery: Option[String] = None
+  val taskTable = TaskTable(context)
 
   def showIncompleteTasks() = {
     for (query <- currentQuery) {
@@ -31,7 +41,7 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
   }
 
   def showTasksDueToday(context: Context) = {
-    currentQuery = Some("select * from tasks where completed_at is null and due_date = date('now')" + ordering)
+    currentQuery = Some("select * from tasks where completed_at is null and strftime('%Y-%m-%d', due_date) = date('now')" + ordering)
     filter(currentQuery.get)
   }
 
@@ -47,10 +57,23 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
 
   def filterWihCurrentQuery() = for (query <- currentQuery) filter(query)
 
-  def getTask(i: Integer): Task = {
-    // TODO: refactor Task#fromCursor?
-    val cursor: Cursor = getItem(i).asInstanceOf[Cursor]
-    Task.fromCursor(cursor)
+  def getTask(i: Integer): Task = Task.fromCursor(getItem(i).asInstanceOf[Cursor])
+
+  def allTasks: Seq[Task] = {
+    // val cursor = taskTable.db.rawQuery("select * from tasks", null)
+    val cursor = taskTable.db.query("tasks", null, null, null, null, null, null, null)
+    val lst = scala.collection.mutable.ListBuffer.empty[Task]
+
+    if (cursor.getCount() > 0) {
+      cursor.moveToFirst()
+      while (!cursor.isAfterLast()) {
+        lst += Task.fromCursor(cursor)
+        cursor.moveToNext()
+      }
+
+    }
+    cursor.close()
+    lst.toList
   }
 
   def registerCheckBoxStateChangeHandler(f: (CompoundButton, Boolean) => Unit) = checkBoxStateChangeHandler = Some(f)
@@ -142,7 +165,7 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
 
   private def filter(query: String) = {
     setFilterQueryProvider((_:CharSequence) =>
-      (new TaskTable(context)).db.rawQuery(query, null))
+      taskTable.db.rawQuery(query, null))
     getFilter().filter("")
     Tasks.refresh(context)
   }

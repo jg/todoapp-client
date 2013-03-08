@@ -37,5 +37,12 @@ class Spinner(context: Context, attrs: AttributeSet) extends android.widget.Spin
 
     fromArray(labels)
   }
+
+  def setSelection(s: String): Unit = {
+    val adapter = getAdapter()
+    for (i <- 1 to (adapter.getCount()-1) if adapter.getItem(i).toString == s) {
+      setSelection(i)
+    }
+  }
 }
 

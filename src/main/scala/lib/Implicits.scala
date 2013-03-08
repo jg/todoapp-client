@@ -9,7 +9,7 @@ import android.widget.AdapterView._
 import android.database.Cursor
 
 object Implicits {
-  implicit def date2long(d: Date): Long = d.getMillis
+  // implicit def date2long(d: Date): Long = d.getMillis
   implicit def textViewToString(tv: TextView): String = tv.getText.toString
   implicit def listAdapterToTaskAdapter(v: ListAdapter): TaskAdapter = v.asInstanceOf[TaskAdapter]
 

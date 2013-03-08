@@ -9,8 +9,9 @@ case class Query(href: String, rel: String, name: Option[String], prompt: Option
 
 object Collection {
   def apply(json: String) = new Collection(json)
-  def apply(uri: String, username: String, password: String) =
-    new Collection(HttpAgent.get(uri, username, password))
+  def apply(uri: String, username: String, password: String) = new Collection(HttpAgent.get(uri, username, password))
+
+  def postJSON(url: String, username: String, password: String, json: String) = HttpAgent.postJSON(url, username, password, json)
 }
 
 /**
@@ -18,7 +19,9 @@ object Collection {
  * collection+json format
  */
 class Collection(json: String) {
-  def jsonObject: JSONObject = new JSONTokener(json).nextValue().asInstanceOf[JSONObject]
+  def jsonObject: JSONObject = new JSONObject((new JSONTokener(json)).nextValue().asInstanceOf[org.json.JSONObject])
+
+  def href = collection.getString("href").get
 
   def collection: JSONObject = jsonObject.getJSONObject("collection")
 
@@ -34,6 +37,14 @@ class Collection(json: String) {
   def queries: Option[List[Query]] = {
     for (queries <- collection.getJSONArray("queries"))
       yield queries.toList[Query](jsonObjectToQuery)
+  }
+
+  def template: Option[List[Data]] = {
+    val template = collection.getJSONObject("template")
+    for {
+      data <- template.getJSONArray("data")
+    }
+      yield data.toList[Data](jsonObjectToData)
   }
 
   implicit def jsonObjectToLink(x: JSONObject): Link = Link(x.getString("rel").get, x.getString("href").get)
