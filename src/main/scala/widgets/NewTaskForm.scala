@@ -21,42 +21,63 @@ import com.android.todoapp.Implicits._
 import com.android.todoapp.Utils._
 
 class NewTaskForm(context: Context, view: View, resources: Resources, fragmentManager: FragmentManager, currentTaskListSpinner: CurrentTaskListSpinner) {
+
+  // buttons
+
+  val priorityButton = findButton(R.id.priority)
+  val dateButton     = findButton(R.id.date)
+  val timeButton     = findButton(R.id.time)
+  val repeatButton   = findButton(R.id.repeat)
+
+  val listener = (selection: Any) => { highlightButtonsWithSelection() }
+
   lazy val prioritySelectionDialog: PickerDialog = {
     val priorities = resources.getStringArray(R.array.task_priorities)
-    val listener = (selection: String) => ()
     new PickerDialog(context, priorities.asInstanceOf[Array[CharSequence]], listener)
   }
 
   lazy val dateSelectionDialog = {
-    val listener = (selection: Date) => ()
     new DatePickerDialog(context, "Date", listener)
   }
 
   lazy val timeSelectionDialog = {
-    val listener = (time: Time) => ()
     new TimePickerDialog(context, listener)
   }
 
   lazy val repeatSelectionDialog = {
     val repeat_list = resources.getStringArray(R.array.task_repeat).asInstanceOf[Array[CharSequence]]
-    val listener = (selection: String) => ()
     new PickerDialog(context, repeat_list, listener)
   }
 
   lazy val selectionDialogs = List(prioritySelectionDialog, dateSelectionDialog, timeSelectionDialog, repeatSelectionDialog)
 
+  def highlightButtonsWithSelection(): Unit = {
+    val bgSelectedColor = 0xFF669900
+
+    val buttonMap = Map((priorityButton, prioritySelectionDialog),
+                        (dateButton, dateSelectionDialog),
+                        (timeButton, timeSelectionDialog),
+                        (repeatButton, repeatSelectionDialog))
+
+    buttonMap.foreach{case (button, dialog) => {
+      if (dialog.hasSelection) button.setPressed(true)
+    }}
+  }
+
+
   // register listeners on view
 
-  findButton(R.id.priority).setOnClickListener((v: View) =>
-    prioritySelectionDialog.show(fragmentManager, "priority-dialog"))
+  priorityButton.setOnClickListener((v: View) =>
+    prioritySelectionDialog.show(fragmentManager, "priority-dialog")
+  )
 
-  findButton(R.id.date).setOnClickListener((v: View) =>
+  dateButton.setOnClickListener((v: View) =>
    dateSelectionDialog.show(fragmentManager, "date-dialog"))
 
-  findButton(R.id.time).setOnClickListener((v: View) =>
+  timeButton.setOnClickListener((v: View) =>
     timeSelectionDialog.show(fragmentManager, "time-dialog"))
 
-  findButton(R.id.repeat).setOnClickListener((v: View) =>
+  repeatButton.setOnClickListener((v: View) =>
     repeatSelectionDialog.show(fragmentManager, "repeat-dialog"))
 
   val input = findViewById(R.id.task_title_input).asInstanceOf[TextView]
