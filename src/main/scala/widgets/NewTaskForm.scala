@@ -102,7 +102,7 @@ class NewTaskForm(context: Context, view: View, resources: Resources, fragmentMa
         task.repeat   = Some(Period(repeatSelectionDialog.selection.get))
 
       Tasks.add(context, task)
-      pr("New Task Added")
+      Util.pr(context, "New Task Added")
     }
 
     val title = findViewById(R.id.task_title_input).asInstanceOf[TextView]
@@ -117,22 +117,10 @@ class NewTaskForm(context: Context, view: View, resources: Resources, fragmentMa
 
   def hide() = {
     findViewById(R.id.tasksNew).setVisibility(View.GONE)
-    hideKeyboard(findEditText(R.id.task_title_input).getWindowToken())
+    Util.hideKeyboard(context, findEditText(R.id.task_title_input).getWindowToken())
   }
 
   private def findViewById(id: Int) = view.findViewById(id)
   private def findEditText(id: Int) = findViewById(id).asInstanceOf[EditText]
   private def findButton(id: Int) = findViewById(id).asInstanceOf[Button]
-  private def pr(s: String) = Toast.makeText(context, s, Toast.LENGTH_SHORT).show();
-
-  def showKeyboard() = {
-    val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE).asInstanceOf[InputMethodManager]
-    imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, 0)
-  }
-
-  def hideKeyboard(windowToken: IBinder) = {
-    val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE).asInstanceOf[InputMethodManager]
-    imm.hideSoftInputFromWindow(windowToken, 0);
-  }
-
 }
