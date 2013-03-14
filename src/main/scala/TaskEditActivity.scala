@@ -14,6 +14,7 @@ class TaskEditActivity extends FragmentActivity with Finders {
   var task: Task = _
 
   val NotSet = "Not set"
+  val taskTable = TaskTable(this)
 
   lazy val dateSelectionDialog = {
     val listener = (selection: Date) =>
@@ -26,12 +27,19 @@ class TaskEditActivity extends FragmentActivity with Finders {
   }
 
   override def onCreate(bundle: Bundle) {
+    taskTable.open()
+
     super.onCreate(bundle)
     setContentView(R.layout.task_edit)
 
     task = getTaskFromIntent()
 
     initTaskEditForm()
+  }
+
+  override def onPause() = {
+    super.onPause()
+    taskTable.close()
   }
 
   def getTaskFromIntent() = {
