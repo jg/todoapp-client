@@ -10,7 +10,7 @@ import android.support.v4.app.FragmentActivity
 import android.view.View.OnFocusChangeListener
 import android.content.Intent
 
-class TaskEditActivity extends FragmentActivity with Finders {
+class TaskEditActivity extends FragmentActivity with ActivityExtensions {
   var task: Task = _
 
   val NotSet = "Not set"
@@ -49,21 +49,22 @@ class TaskEditActivity extends FragmentActivity with Finders {
     adapter.getTask(taskPosition)
   }
 
-  def setDueDate(date: Option[Date]) = {
-    val el = findButton(R.id.due_date)
-    el.setText(if (date.isEmpty) NotSet else date.get.dateFormat)
-  }
+  def setDueDate(date: Option[Date]) = findButton(R.id.due_date).setText(if (date.isEmpty) NotSet else date.get.dateFormat)
 
-  def setDueTime(time: Option[Time]) = {
-    val el = findButton(R.id.due_time)
-    el.setText(if (time.isEmpty) NotSet else time.get.toString)
-  }
+  def setDueTime(time: Option[Time]) = findButton(R.id.due_time).setText(if (time.isEmpty) NotSet else time.get.toString)
+
+  def TaskListRestrictions = app.TaskListRestrictions
 
   def initTaskEditForm() = {
     def setTaskTitle() = findEditText(R.id.task_title).setText(task.title)
+
     def populateTaskListSpinner() = {
-      findSpinner(R.id.task_list).fromResource(R.array.task_lists)
+      val spinner = findSpinner(R.id.task_list)
+      val lists = TaskListRestrictions.taskLists
+      spinner.fromArray(lists.toArray.map(_.toString))
+      spinner.setSelection(lists.indexOf(TaskListRestrictions.current))
     }
+
     def populateTaskPrioritySpinner() = {
       // populate
       val spinner = findSpinner(R.id.task_priority)
@@ -75,31 +76,40 @@ class TaskEditActivity extends FragmentActivity with Finders {
       val index = priorities.indexOf(priority)
       spinner.setSelection(index)
     }
+
     def populateTaskRepeatSpinner() = {
         val spinner = findSpinner(R.id.task_repeat)
         spinner.fromArray(Period.stringValues)
 
         for (repeat <- task.repeat) spinner.setSelection(repeat.toString)
     }
+
     def setDueDateClickHandler() = {
       findButton(R.id.due_date).setOnClickListener((v: View) =>
         dateSelectionDialog.show(getSupportFragmentManager(), "date-dialog"))
     }
+
     def setDueTimeClickHandler() = {
       findButton(R.id.due_time).setOnClickListener((v: View) =>
         timeSelectionDialog.show(getSupportFragmentManager(), "time-dialog"))
     }
+
     def setSaveButtonHandler() = {
       def taskPriority = Priority(findSpinner(R.id.task_priority).value)
+
       def taskTitle = findEditText(R.id.task_title).getText.toString()
+
       def taskList = findSpinner(R.id.task_list).value
+
       def taskRepeat = {
         val value = findSpinner(R.id.task_repeat).value
         if (value == PeriodNotSet.toString) None
         else Some(Period(value))
       }
+
       def taskDueDate = if (dateSelectionDialog.hasSelection)
         dateSelectionDialog.selection else None
+
       def taskDueTime = if (timeSelectionDialog.hasSelection)
         timeSelectionDialog.selection else None
 

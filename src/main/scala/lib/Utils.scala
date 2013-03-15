@@ -26,6 +26,7 @@ trait ActivityExtensions extends Activity with Finders {
     imm.hideSoftInputFromWindow(windowToken, 0);
   }
 
+  def app = getApplicationContext.asInstanceOf[App]
 }
 
 object Utils {
