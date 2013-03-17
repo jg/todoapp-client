@@ -3,3 +3,5 @@ target/*
 TODO*
 tags
 src/main/scala/target/*
+.*
+\#*
