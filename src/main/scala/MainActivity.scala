@@ -52,6 +52,11 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
 
     // sync button
     findButton(R.id.synchronizeButton).setOnClickListener((view: View) => synchronizeButtonHandler(view))
+
+    // restore repeating tasks that are ready
+    Tasks.adapter(this).allTasks
+      .filter((t: Task) => t.isReadyToRepeat)
+      .map((t: Task) => t.repeatTask())
   }
   override def onDestroy() = taskTable.close()
 

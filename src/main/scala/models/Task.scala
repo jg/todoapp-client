@@ -175,4 +175,21 @@ class Task(var title: String) {
     deserialize(lst.toList)
   }
 
+  def isReadyToRepeat: Boolean = {
+    if (completed_at.isDefined) {
+      repeat match {
+	case Some(period: EachPeriod) =>
+	  Date.now.hourDifference(completed_at.get) > period.amount
+	case Some(period: EveryPeriod) =>
+	  period.isNextPeriod(completed_at.get, Date.now)
+	case _ => false
+      }
+    } else false
+  }
+
+  def repeatTask() = {
+    completed_at = None
+    updated_at = Date.now
+  }
+
 }
