@@ -131,4 +131,7 @@ class Date(date: DateTime) {
   def month = date.getMonthOfYear()
 
   def toDateTime = date
+
+  def addPeriod(period: Period): Date =
+    new Date(date.plusHours(period.amount))
 }

@@ -51,7 +51,7 @@ class Task(var title: String) {
   var due_time: Option[Time]     = None
   var task_list: String          = "master"
   var priority: Priority         = new Priority(Priority.Normal)
-  var repeat: Option[Period]     = None
+  var repeat: Option[RepeatPattern]     = None
 
   def fieldMap = Map(
     ("title", title),
@@ -143,7 +143,7 @@ class Task(var title: String) {
         case ("due_time", value: Int) => due_time = Some(Time.fromMinutes(value))
         case ("due_time", value: String) => due_time = Some(Time.fromMinutes(value.toInt))
         case ("due_date", value: String) => due_date = Some(Date(value))
-        case ("repeat", value: String) => repeat = Some(Period(value))
+        case ("repeat", value: String) => repeat = RepeatPattern(value)
         case ("priority", value: String) => priority = Priority(value)
         case ("task_list", value: String) => task_list = value
         case ("title", value: String) => title = value
@@ -178,11 +178,11 @@ class Task(var title: String) {
   def isReadyToRepeat: Boolean = {
     if (completed_at.isDefined) {
       repeat match {
-	case Some(period: EachPeriod) =>
-	  Date.now.hourDifference(completed_at.get) > period.amount
-	case Some(period: EveryPeriod) =>
-	  period.isNextPeriod(completed_at.get, Date.now)
-	case _ => false
+        case Some(RepeatAfter(period)) =>
+          Date.now.hourDifference(completed_at.get) > period.amount
+        case repeatPattern @ Some(RepeatEvery(period)) =>
+          repeatPattern.get.asInstanceOf[RepeatEvery].isNextPeriod(completed_at.get, Date.now)
+        case _ => false
       }
     } else false
   }
@@ -192,4 +192,12 @@ class Task(var title: String) {
     updated_at = Date.now
   }
 
+  def postpone(period: Period) = {
+    if (completed_at.isEmpty) {
+      for (due_date_value <- due_date) {
+          due_date = Some(due_date_value.addPeriod(period))
+          updated_at = Date.now
+      }
+    }
+  }
 }
