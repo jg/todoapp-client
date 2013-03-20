@@ -4,10 +4,27 @@ abstract class Period {
   def amount: Integer
   def isEqual(startDate: Date, date: Date): Boolean
 }
+object Period {
+  def values = List(Hour, FourHours, SixHours, Day, Week, TwoWeeks, Month)
+  def fromString(label: String): Option[Period] = values.find(_.toString == label)
+  def apply(s: String) = fromString(s)
+}
+case object Hour extends Period {
+  override def toString = "Hour"
+  def amount = 1
+  def isEqual(startDate: Date, date: Date) =
+    startDate.hourDifference(date) <= 1
+}
+case object FourHours extends Period {
+  override def toString = "Four Hours"
+  def amount = 4
+  def isEqual(startDate: Date, date: Date) =
+    startDate.hourDifference(date) <= 4
+}
 case object SixHours extends Period {
   override def toString = "Six Hours"
   def amount = 6
-  def isEqual(startDate: Date, date: Date) = 
+  def isEqual(startDate: Date, date: Date) =
     startDate.hourDifference(date) <= 6
 }
 case object Day extends Period {
@@ -49,7 +66,7 @@ case class RepeatEvery(period: Period) extends RepeatPattern {
 /*
 case object PeriodNotSet extends Period {
   override def toString = "Not Set"
-  def amount = 0
+def amount = 0
 }
 */
 
