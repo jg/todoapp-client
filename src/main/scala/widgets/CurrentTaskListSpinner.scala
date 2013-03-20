@@ -24,7 +24,7 @@ class CurrentTaskListSpinner(context: Context, attrs: AttributeSet) extends Spin
     setSelection(choice)
 
     choice match {
-      case FilterToday => adapter.showTasksDueToday(context)
+      case FilterToday => adapter.showTasksDueToday()
       case FilterThisWeek => adapter.showTasksDueThisWeek()
       case TaskList(list) => adapter.showTasksInList(list)
       case _ => ()

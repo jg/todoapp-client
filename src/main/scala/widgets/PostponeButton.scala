@@ -17,7 +17,10 @@ case class PostponeButton(context: Context, button: Button, fragmentManager: Fra
     val listener = (selection: String) => {
       val postponePeriod = Period(selection).get
       val items = taskListView.checkedItems
-      items.foreach((task: Task) => task.setPostpone(postponePeriod))
+      items.foreach((task: Task) => {
+        task.setPostpone(postponePeriod)
+        task.save(context)
+      })
       Util.pr(context, "Postponed " + items.size + " tasks")
     }
     new PickerDialog(context, choices.asInstanceOf[Array[CharSequence]], listener)
