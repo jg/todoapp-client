@@ -3,6 +3,8 @@ package com.android.todoapp
 import org.scala_tools.time.Imports._
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.DateTimeConstants
+import org.joda.time.Hours
+import org.joda.time.Hours._
 
 object Today { def unapply(s: String): Boolean = s.matches("[Tt]oday") }
 object Tomorrow { def unapply(s: String): Boolean = s.matches("[Tt]omorrow") }
@@ -85,18 +87,18 @@ object Date {
 
 }
 
-
+/* TODO:
+     - rename to DateTime
+     - define '-' operation (should return hours)
+*/
 class Date(date: DateTime) {
   override def toString = DateTimeFormat.forPattern("yyyy-MM-dd").print(date)
 
   def fullFormat = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm").print(date)
-
   def completeFormat = DateTimeFormat.forPattern(StandardFormat.toString).print(date)
-
+  def YYYYMMDD = DateTimeFormat.forPattern("yyyy-MM-dd").print(date)
   def dateFormat = DateTimeFormat.forPattern("yyyy-MM-dd").print(date)
-
   def dayMonthFormat = DateTimeFormat.forPattern("dd MMM").print(date)
-
   def weekday = DateTimeFormat.forPattern("EEEE").print(date).toLowerCase
 
   def isToday = {
@@ -109,10 +111,27 @@ class Date(date: DateTime) {
     fmt.print(date) == fmt.print(new DateTime() + 1.day)
   }
 
+  def isStartOfWeek = date.dayOfWeek().getField().getAsText(getMillis) == "Monday"
+
   def getMillis: Long = date.getMillis()
 
   override def equals(other: Any) = other match {
     case date: Date => completeFormat == date.completeFormat
     case _ => false
   }
+
+  def hourDifference(date: Date) =
+    Hours.hoursBetween(this.toDateTime, date.toDateTime).getHours()
+
+  def isStartOfMonth =
+    date.getDayOfMonth() == 1
+
+  def week = date.getWeekOfWeekyear()
+
+  def month = date.getMonthOfYear()
+
+  def toDateTime = date
+
+  def addPeriod(period: Period): Date =
+    new Date(date.plusHours(period.amount))
 }

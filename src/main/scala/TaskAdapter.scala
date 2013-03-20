@@ -26,36 +26,53 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
   var currentQuery: Option[String] = None
   val taskTable = TaskTable(context)
 
+  val incompleteTasksQueryWhere =  "completed_at is null and postpone is null"
+  val completedTasksQueryWhere =  "completed_at is not null or postpone is not null"
+
   def showIncompleteTasks() = {
     for (query <- currentQuery) {
-      currentQuery = Some(query.replace("completed_at is not null", "completed_at is null"))
-      filter(currentQuery.get)
+      currentQuery = Some(query.replace(completedTasksQueryWhere, incompleteTasksQueryWhere))
+      filterWithCurrentQuery()
     }
   }
 
   def showCompletedTasks() = {
     for (query <- currentQuery) {
-      currentQuery = Some(query.replace("completed_at is null", "completed_at is not null"))
-      filter(currentQuery.get)
+      currentQuery = Some(query.replace(incompleteTasksQueryWhere, completedTasksQueryWhere))
+      filterWithCurrentQuery()
     }
   }
 
-  def showTasksDueToday(context: Context) = {
-    currentQuery = Some("select * from tasks where completed_at is null and strftime('%Y-%m-%d', due_date) = date('now')" + ordering)
-    filter(currentQuery.get)
+  def defaultWhere = " where completed_at is null and postpone is null "
+
+  def taskListWhere(list: String) = " and task_list = '" + list + "' "
+
+  def showTasksDueToday() = {
+    currentQuery = Some("select * from tasks " + defaultWhere + " and strftime('%Y-%m-%d', due_date) = date('now')" + ordering)
+    filterWithCurrentQuery()
   }
 
   def showTasksDueThisWeek() = {
-    currentQuery = Some("select * from tasks where completed_at is null and strftime('%W', due_date) = strftime('%W', 'now')" + ordering)
-    filter(currentQuery.get)
+    currentQuery = Some("select * from tasks" + defaultWhere + "and strftime('%W', due_date) = strftime('%W', 'now')" + ordering)
+    filterWithCurrentQuery()
   }
 
   def showTasksInList(list: String) = {
-    currentQuery = Some("select * from tasks where completed_at is null and task_list = '" + list + "'" + ordering)
-    filter(currentQuery.get)
+    currentQuery = Some("select * from tasks" + defaultWhere + taskListWhere(list) + ordering)
+    filterWithCurrentQuery()
   }
 
-  def filterWihCurrentQuery() = for (query <- currentQuery) filter(query)
+  def showPostponedTasks(list: String) = {
+    currentQuery = Some("select * from tasks where postpone is not null " + taskListWhere(list) + ordering)
+    filterWithCurrentQuery()
+  }
+
+  def filterWithCurrentQuery() = {
+    for (query <- currentQuery) {
+      filter(query)
+      Log.i(query)
+    }
+  }
 
   def getTask(i: Integer): Task = Task.fromCursor(getItem(i).asInstanceOf[Cursor])
 

@@ -79,7 +79,7 @@ class TaskEditActivity extends FragmentActivity with ActivityExtensions {
 
     def populateTaskRepeatSpinner() = {
         val spinner = findSpinner(R.id.task_repeat)
-        spinner.fromArray(Period.stringValues)
+        spinner.fromArray(RepeatPattern.stringValues)
 
         for (repeat <- task.repeat) spinner.setSelection(repeat.toString)
     }
@@ -101,11 +101,7 @@ class TaskEditActivity extends FragmentActivity with ActivityExtensions {
 
       def taskList = findSpinner(R.id.task_list).value
 
-      def taskRepeat = {
-        val value = findSpinner(R.id.task_repeat).value
-        if (value == PeriodNotSet.toString) None
-        else Some(Period(value))
-      }
+      def taskRepeat: String = findSpinner(R.id.task_repeat).value
 
       def taskDueDate = if (dateSelectionDialog.hasSelection)
         dateSelectionDialog.selection else None
@@ -117,7 +113,7 @@ class TaskEditActivity extends FragmentActivity with ActivityExtensions {
         task.priority = taskPriority
         task.title = taskTitle
         task.task_list = taskList
-        task.repeat = taskRepeat
+        task.repeat = RepeatPattern(taskRepeat)
         task.due_date = taskDueDate
         task.due_time = taskDueTime
         task.save(this)

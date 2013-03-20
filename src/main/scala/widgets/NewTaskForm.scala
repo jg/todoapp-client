@@ -45,8 +45,7 @@ class NewTaskForm(context: Context, view: View, resources: Resources, fragmentMa
   }
 
   lazy val repeatSelectionDialog = {
-    val repeat_list = resources.getStringArray(R.array.task_repeat).asInstanceOf[Array[CharSequence]]
-    new PickerDialog(context, repeat_list, listener)
+    new PickerDialog(context, RepeatPattern.stringValues.asInstanceOf[Array[CharSequence]], listener)
   }
 
   lazy val selectionDialogs = List(prioritySelectionDialog, dateSelectionDialog, timeSelectionDialog, repeatSelectionDialog)
@@ -99,7 +98,7 @@ class NewTaskForm(context: Context, view: View, resources: Resources, fragmentMa
       if (timeSelectionDialog.hasSelection)
         task.due_time = Some(timeSelectionDialog.selection.get)
       if (repeatSelectionDialog.hasSelection)
-        task.repeat   = Some(Period(repeatSelectionDialog.selection.get))
+        task.repeat   = RepeatPattern(repeatSelectionDialog.selection.get)
 
       Tasks.add(context, task)
       Util.pr(context, "New Task Added")

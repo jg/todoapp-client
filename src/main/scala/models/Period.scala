@@ -1,29 +1,83 @@
 package com.android.todoapp
 
-class Period
-case class PeriodNotSet extends Period { override def toString = "Not Set" }
-case class EveryDay extends Period { override def toString = "Every Day" }
-case class EveryWeek extends Period { override def toString = "Every Week" }
-case class EveryTwoWeeks extends Period { override def toString = "Every Two Weeks" }
-case class EveryMonth extends Period { override def toString = "Every Month" }
-case class EveryYear extends Period { override def toString = "Every Year" }
-case class AfterADay extends Period { override def toString = "After A Day" }
-case class AfterAWeek extends Period { override def toString = "After A Week" }
-case class AfterTwoWeeks extends Period { override def toString = "After Two Weeks" }
-case class AfterAMonth extends Period { override def toString = "After A Month" }
-case class AfterAYear extends Period { override def toString = "After A Year" }
-
+abstract class Period {
+  def amount: Integer
+  def isEqual(startDate: Date, date: Date): Boolean
+}
 object Period {
-  val values: List[Period] = List(PeriodNotSet(), EveryDay(), EveryWeek(), EveryTwoWeeks(), EveryMonth(), EveryYear(), AfterADay(), AfterAWeek(), AfterTwoWeeks(), AfterAMonth(), AfterAYear())
-
-  def fromString(label: String): Period = values.find(_.toString == label) match {
-    case Some(caseClass) => caseClass
-    case None => PeriodNotSet()
-  }
-
+  def values = List(Hour, FourHours, SixHours, Day, Week, TwoWeeks, Month)
+  def fromString(label: String): Option[Period] = values.find(_.toString == label)
   def apply(s: String) = fromString(s)
+}
+case object Hour extends Period {
+  override def toString = "Hour"
+  def amount = 1
+  def isEqual(startDate: Date, date: Date) =
+    startDate.hourDifference(date) <= 1
+}
+case object FourHours extends Period {
+  override def toString = "Four Hours"
+  def amount = 4
+  def isEqual(startDate: Date, date: Date) =
+    startDate.hourDifference(date) <= 4
+}
+case object SixHours extends Period {
+  override def toString = "Six Hours"
+  def amount = 6
+  def isEqual(startDate: Date, date: Date) =
+    startDate.hourDifference(date) <= 6
+}
+case object Day extends Period {
+  override def toString = "A Day"
+  def amount = 24
+  def isEqual(startDate: Date, date: Date) =
+    startDate.YYYYMMDD == date.YYYYMMDD
+}
+case object Week extends Period {
+  override def toString = "A Week"
+  def amount = 24*7
+  def isEqual(startDate: Date, date: Date) =
+    startDate.week == date.week
+}
+case object TwoWeeks extends Period {
+  override def toString = "Two Weeks"
+  def amount = 24*7*2
+  def isEqual(startDate: Date, date: Date) =
+    startDate.week   == date.week || startDate.week+1 == date.week
+}
+case object Month extends Period {
+  override def toString = "A Month"
+  def amount = 30*24
+  def isEqual(startDate: Date, date: Date) =
+    startDate.month == date.month
+}
 
-  def stringValues: Array[String] = values.map(_.toString).toArray[String]
+abstract class RepeatPattern
 
+case class RepeatAfter(period: Period) extends RepeatPattern {
+  override def toString = "After " + period.toString
+}
+case class RepeatEvery(period: Period) extends RepeatPattern {
+  override def toString = "Every " + period.toString
+  def isNextPeriod(startDate: Date, date: Date) =
+    !period.isEqual(startDate, date)
+}
+
+/*
+case object PeriodNotSet extends Period {
+  override def toString = "Not Set"
+def amount = 0
+}
+*/
+
+
+object RepeatPattern {
+  val periods = List(SixHours, Day, Week, TwoWeeks, Month)
+  val patterns = periods.map(RepeatAfter(_)) ++ periods.map(RepeatEvery(_))
+  val values: List[String] = List("Not Set") ++ patterns.map(_.toString)
+
+  def fromString(label: String): Option[RepeatPattern] = patterns.find(_.toString == label)
+  def apply(s: String) = fromString(s)
+  def stringValues: Array[String] = values.toArray[String]
 }
 

@@ -18,7 +18,8 @@ object Task {
     "due_time"     -> "integer",
     "task_list"    -> "string",
     "priority"     -> "string",
-    "repeat"       -> "string"
+    "repeat"       -> "string",
+    "postpone"     -> "string"
   )
 
   def columnIndex(fieldName: String): Int = {
@@ -44,14 +45,15 @@ object Task {
 
 class Task(var title: String) {
   var id: Long                   = -1
-  var completed_at: Option[Date] = None
-  var created_at: Date           = Date.now
-  var updated_at: Date           = Date.now
-  var due_date: Option[Date]     = None
-  var due_time: Option[Time]     = None
-  var task_list: String          = "master"
-  var priority: Priority         = new Priority(Priority.Normal)
-  var repeat: Option[Period]     = None
+  var completed_at: Option[Date]    = None
+  var created_at: Date              = Date.now
+  var updated_at: Date              = Date.now
+  var due_date: Option[Date]        = None
+  var due_time: Option[Time]        = None
+  var task_list: String             = "master"
+  var priority: Priority            = new Priority(Priority.Normal)
+  var repeat: Option[RepeatPattern] = None
+  var postpone: Option[Period]      = None
 
   def fieldMap = Map(
     ("title", title),
@@ -63,7 +65,8 @@ class Task(var title: String) {
     ("due_time", due_time),
     ("task_list", task_list),
     ("priority", priority),
-    ("repeat", repeat)
+    ("repeat", repeat),
+    ("postpone", postpone)
   )
 
   override def toString = title
@@ -82,6 +85,7 @@ class Task(var title: String) {
     if (!due_time.isEmpty) values.put("due_time", due_time.get.toInt: Integer)
     if (!repeat.isEmpty) values.put("repeat", repeat.get.toString)
     if (!completed_at.isEmpty) values.put("completed_at", completed_at.get.completeFormat)
+    for (v <- postpone) values.put("postpone", v.toString)
 
     values
   }
@@ -143,10 +147,11 @@ class Task(var title: String) {
         case ("due_time", value: Int) => due_time = Some(Time.fromMinutes(value))
         case ("due_time", value: String) => due_time = Some(Time.fromMinutes(value.toInt))
         case ("due_date", value: String) => due_date = Some(Date(value))
-        case ("repeat", value: String) => repeat = Some(Period(value))
+        case ("repeat", value: String) => repeat = RepeatPattern(value)
         case ("priority", value: String) => priority = Priority(value)
         case ("task_list", value: String) => task_list = value
         case ("title", value: String) => title = value
+        case ("postpone", value: String) => postpone = Period(value)
       }
     })
     this
@@ -169,10 +174,36 @@ class Task(var title: String) {
     if (isPresent("due_time"))     lst += (("due_time", cursor.getInt(i("due_time"))))
     if (isPresent("repeat"))       lst += (("repeat", cursor.getString(i("repeat"))))
     if (isPresent("task_list"))    lst += (("task_list", cursor.getString(i("task_list"))))
+    if (isPresent("postpone"))     lst += (("postpone", cursor.getString(i("postpone"))))
 
     // Log.i(lst.toList.mkString(", "))
 
     deserialize(lst.toList)
   }
 
+  def isReadyToRepeat: Boolean = {
+    if (completed_at.isDefined) {
+      repeat match {
+        case Some(RepeatAfter(period)) =>
+          Date.now.hourDifference(completed_at.get) > period.amount
+        case repeatPattern @ Some(RepeatEvery(period)) =>
+          repeatPattern.get.asInstanceOf[RepeatEvery].isNextPeriod(completed_at.get, Date.now)
+        case _ => false
+      }
+    } else false
+  }
+
+  def repeatTask() = {
+    completed_at = None
+    updated_at = Date.now
+  }
+
+  def setPostpone(period: Period) = {
+    if (completed_at.isEmpty) {
+      postpone = Some(period)
+      updated_at = Date.now
+    }
+  }
+
+  def resetPostpone = postpone = None
 }
