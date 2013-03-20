@@ -45,7 +45,7 @@ class TaskListView(context: Context, listView: ListView) {
     Range(0, listView.getChildCount()).count(listView.getChildAt(_).asInstanceOf[TaskLayout].isChecked())
   }
 
-  def checkedItems = {
+  def checkedItems: Seq[Task] = {
     val lv = listView
     Range(0, lv.getChildCount())
       .filter(lv.getChildAt(_).asInstanceOf[TaskLayout].isChecked())
