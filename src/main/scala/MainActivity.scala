@@ -44,7 +44,7 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
     val currentTaskListSpinner = findViewById(R.id.current_task_list).asInstanceOf[CurrentTaskListSpinner]
     newTaskForm = new NewTaskForm(this, container, getResources(), getSupportFragmentManager(), currentTaskListSpinner)
     commandButton = new CommandButton(context, container, taskList, R.id.commandButton)
-    new PostponeButton(context, findButton(R.id.postponeButton),  getSupportFragmentManager())
+    new PostponeButton(context, findButton(R.id.postponeButton),  getSupportFragmentManager(), taskList)
 
     val adapter = Tasks.adapter(context)
     adapter.registerCheckBoxStateChangeHandler((buttonView: CompoundButton, isChecked: Boolean) =>
@@ -57,6 +57,7 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
     Tasks.adapter(this).allTasks
       .filter((t: Task) => t.isReadyToRepeat)
       .map((t: Task) => t.repeatTask())
+
   }
   override def onDestroy() = taskTable.close()
 
