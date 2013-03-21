@@ -205,5 +205,13 @@ class Task(var title: String) {
     }
   }
 
-  def resetPostpone = postpone = None
+  def resetPostpone() = {
+    postpone = None
+    updated_at = Date.now
+  }
+
+  def isPostponeOver: Boolean = postpone match {
+    case Some(period) => Date.now.hourDifference(updated_at) > period.amount
+    case None => true
+  }
 }

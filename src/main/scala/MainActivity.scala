@@ -52,12 +52,6 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
 
     // sync button
     findButton(R.id.synchronizeButton).setOnClickListener((view: View) => synchronizeButtonHandler(view))
-
-    // restore repeating tasks that are ready
-    Tasks.adapter(this).allTasks
-      .filter((t: Task) => t.isReadyToRepeat)
-      .map((t: Task) => t.repeatTask())
-
   }
   override def onDestroy() = taskTable.close()
 
@@ -71,6 +65,30 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
   override def onResume() = {
     super.onPause()
     taskTable.open()
+
+    val tasks = Tasks.adapter(this).allTasks
+
+    tasks.foreach((t: Task) => {
+      Log.i(t.updated_at.fullFormat)
+    })
+
+    // restore repeating tasks that are ready
+    tasks
+      .filter((t: Task) => t.isReadyToRepeat)
+      .foreach((t: Task) => {
+        t.repeatTask()
+        t.save(this)
+      })
+
+    // restore postponed tasks that are ready
+    val readyTasks = tasks.filter((t: Task) => t.isPostponeOver)
+    val readyCount = readyTasks.size
+    readyTasks.foreach((t: Task) => {
+      t.resetPostpone()
+      t.save(this)
+    })
+  if (readyCount > 0)
+    Util.pr(this, "Restored " + readyCount.toString + " tasks from postponed state")
   }
 
   def initSyncButton(listView: ListView, id: Int) = findButton(id).setOnClickListener(onClickListener(synchronizeButtonHandler))

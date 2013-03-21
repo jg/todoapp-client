@@ -11,6 +11,15 @@ class Specs extends FunSpec with ShouldMatchers with OneInstancePerTest {
     }
 
   }
+  describe("Date") {
+    val d1 = Date("2013-02-27T22:07:47.183")
+    val d2 = Date("2013-02-27T23:07:47.183")
+    d2.hourDifference(d1) should equal(1)
+    d1.hourDifference(d2) should equal(-1)
+
+    d2.minuteDifference(d1) should equal(60)
+    d1.minuteDifference(d2) should equal(-60)
+  }
 
   describe("Priority") {
     (new Priority(Priority.High)) should equal(Priority.High)
