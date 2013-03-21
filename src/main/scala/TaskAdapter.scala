@@ -20,58 +20,83 @@ object TaskAdapter {
   }
 }
 
+class DBQuery(queryGenerator: () => String) {
+  def toSQL = queryGenerator()
+}
+object DBQuery { def apply(f: () => String) = new DBQuery(f)}
+
 class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(context, cursor) {
-  var checkBoxStateChangeHandler: Option[(CompoundButton, Boolean) => Unit] = None
-  var taskClickHandler: Option[(Int) => Unit] = None
-  var currentQuery: Option[String] = None
   val taskTable = TaskTable(context)
 
-  val incompleteTasksQueryWhere =  "completed_at is null and postpone is null"
-  val completedTasksQueryWhere =  "completed_at is not null or postpone is not null"
+  var checkBoxStateChangeHandler: Option[(CompoundButton, Boolean) => Unit] = None
+  var taskClickHandler: Option[(Int) => Unit] = None
+
+  // var currentQuery: Option[String] = None
+  var currentQuery: DBQuery = DBQuery(() => defaultQuery)
+
+  var isShowingCompletedTasks = false
 
   def showIncompleteTasks() = {
-    for (query <- currentQuery) {
-      currentQuery = Some(query.replace(completedTasksQueryWhere, incompleteTasksQueryWhere))
-      filterWithCurrentQuery()
-    }
+    isShowingCompletedTasks = false
+    filterWithCurrentQuery()
   }
 
   def showCompletedTasks() = {
-    for (query <- currentQuery) {
-      currentQuery = Some(query.replace(incompleteTasksQueryWhere, completedTasksQueryWhere))
-      filterWithCurrentQuery()
-    }
+    isShowingCompletedTasks = true
+    filterWithCurrentQuery()
   }
 
-  def defaultWhere = " where completed_at is null and postpone is null "
+  def dueToday = "strftime('%Y-%m-%d', due_date) = date('now')"
+
+  def defaultQuery = selection + whereClause + dueToday + ordering
 
   def taskListWhere(list: String) = " and task_list = '" + list + "' "
 
+  def completedTasksWhere = isShowingCompletedTasks match {
+    case true => " completed_at is not null "
+    case false => " completed_at is null "
+  }
+
+  def postponeWhereClause = isShowingCompletedTasks match {
+    case true => " postpone is not null "
+    case false => " postpone is null "
+  }
+
+  def whereClause =  isShowingCompletedTasks match {
+    case true => "where (" + postponeWhereClause + "or" + completedTasksWhere + ") "
+    case false => "where " + postponeWhereClause + "and" + completedTasksWhere + " "
+  }
+
+  def selection = "select * from tasks "
+
   def showTasksDueToday() = {
-    currentQuery = Some("select * from tasks " + defaultWhere + " and strftime('%Y-%m-%d', due_date) = date('now')" + ordering)
+    currentQuery = DBQuery(() =>
+      selection + whereClause + " and " + dueToday + ordering
+    )
     filterWithCurrentQuery()
   }
 
   def showTasksDueThisWeek() = {
-    currentQuery = Some("select * from tasks" + defaultWhere + "and strftime('%W', due_date) = strftime('%W', 'now')" + ordering)
+    currentQuery = DBQuery(() =>
+      selection + whereClause + "and strftime('%W', due_date) = strftime('%W', 'now')" + ordering)
     filterWithCurrentQuery()
   }
 
   def showTasksInList(list: String) = {
-    currentQuery = Some("select * from tasks" + defaultWhere + taskListWhere(list) + ordering)
+    currentQuery = DBQuery(() =>
+      selection + whereClause + taskListWhere(list) + ordering)
     filterWithCurrentQuery()
   }
 
   def showPostponedTasks(list: String) = {
-    currentQuery = Some("select * from tasks where postpone is not null " + taskListWhere(list) + ordering)
+    currentQuery = DBQuery(() =>
+      "select * from tasks where postpone is not null " + taskListWhere(list) + ordering)
     filterWithCurrentQuery()
   }
 
   def filterWithCurrentQuery() = {
-    for (query <- currentQuery) {
-      filter(query)
-      // Log.i(query)
-    }
+    filter(currentQuery.toSQL)
+    Log.i(currentQuery.toSQL)
   }
 
   def getTask(i: Integer): Task = Task.fromCursor(getItem(i).asInstanceOf[Cursor])
@@ -174,7 +199,8 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
           task.updated_at.addPeriod(task.postpone.get).minuteDifference(Date.now)
         dateView.setText("postponed for " + minuteDifference.toString + " minutes")
       }
-    }
+    } else
+      dateView.setText("")
   }
 
   override def newView(context: Context, cursor: Cursor, parent: ViewGroup): View = {
