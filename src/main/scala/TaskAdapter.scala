@@ -70,7 +70,7 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
   def filterWithCurrentQuery() = {
     for (query <- currentQuery) {
       filter(query)
-      Log.i(query)
+      // Log.i(query)
     }
   }
 
@@ -157,12 +157,23 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
     setTaskList()
     setTaskClickListener()
     setTaskCheckboxToggleListener()
+
     if (task.isCompleted) {
       taskTitle.setPaintFlags(taskTitle.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG)
       setDate(task.completed_at)
-    } else {
+    } else if (task.due_date.isDefined) {
       setDate(task.due_date)
       taskTitle.setPaintFlags(0)
+    } else if (task.postpone.isDefined) {
+      val hourDifference =
+        task.updated_at.addPeriod(task.postpone.get).hourDifference(Date.now)
+      if (hourDifference != 0)
+        dateView.setText("postponed for " + hourDifference.toString + " hours")
+      else {
+        val minuteDifference =
+          task.updated_at.addPeriod(task.postpone.get).minuteDifference(Date.now)
+        dateView.setText("postponed for " + minuteDifference.toString + " minutes")
+      }
     }
   }
 

@@ -3,7 +3,7 @@
 <com.android.todoapp.TaskLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
-    android:layout_height="60dp">
+    android:layout_height="wrap_content">
 
     <View
       android:layout_alignParentLeft="true"
@@ -28,15 +28,18 @@
       android:id="@+id/taskTitle"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
+      android:singleLine="false"
+      android:maxLines="3"
     />
 
     <TextView
-      android:layout_centerVertical="true"
+      android:layout_below="@id/taskTitle"
       android:layout_alignParentRight="true"
       android:layout_marginRight="9dip"
       android:id="@+id/dueDate"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
+      android:layout_marginTop="9dip"
       xmlns:android="http://schemas.android.com/apk/res/android" />
 
     <TextView

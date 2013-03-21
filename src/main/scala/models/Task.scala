@@ -211,7 +211,7 @@ class Task(var title: String) {
   }
 
   def isPostponeOver: Boolean = postpone match {
-    case Some(period) => Date.now.hourDifference(updated_at) > period.amount
+    case Some(period) => Date.now.minuteDifference(updated_at) > period.amount * 60
     case None => true
   }
 }
