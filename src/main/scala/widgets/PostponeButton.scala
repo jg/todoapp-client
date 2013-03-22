@@ -21,6 +21,7 @@ case class PostponeButton(context: Context, button: Button, fragmentManager: Fra
         task.setPostpone(postponePeriod)
         task.save(context)
       })
+      taskListView.unCheckAllItems()
       Util.pr(context, "Postponed " + items.size + " tasks")
     }
     new PickerDialog(context, choices.asInstanceOf[Array[CharSequence]], listener)
