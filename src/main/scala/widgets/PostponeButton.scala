@@ -8,8 +8,11 @@ import com.android.todoapp.Implicits._
 import java.lang.CharSequence
 
 case class PostponeButton(context: Context, button: Button, fragmentManager: FragmentManager, taskListView: TaskListView) {
-  button.setOnClickListener((v: View) => 
-    postponePeriodSelectionDialog.show(fragmentManager, "postpone-selection")
+  button.setOnClickListener((v: View) =>
+    if (taskListView.checkedItemCount > 0)
+      postponePeriodSelectionDialog.show(fragmentManager, "postpone-selection")
+    else
+      Util.pr(context, "No tasks selected")
   )
 
   lazy val postponePeriodSelectionDialog: PickerDialog = {
