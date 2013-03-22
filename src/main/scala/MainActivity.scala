@@ -19,6 +19,7 @@ import android.content.DialogInterface.OnClickListener
 import com.android.todoapp.Implicits._
 import com.android.todoapp.Utils._
 import java.net.UnknownHostException
+import java.util.{Timer, TimerTask}
 
 class MainActivity extends FragmentActivity with TypedActivity with ActivityExtensions {
   var context: Context   = _
@@ -52,6 +53,30 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
 
     // sync button
     findButton(R.id.synchronizeButton).setOnClickListener((view: View) => synchronizeButtonHandler(view))
+
+    val timer = new Timer()
+    val timerTask = new RestorePostponedTask(this, adapter)
+    timer.schedule(timerTask, 1000, 1000)
+  }
+
+    class RestorePostponedTask(context: Context, taskAdapter: TaskAdapter) extends TimerTask {
+    def run() = {
+      context.asInstanceOf[Activity].runOnUiThread(new Runnable() {
+        override def run() {
+          val tasks = taskAdapter.allTasks
+          // restore postponed tasks that are ready
+          val readyTasks = tasks.filter((t: Task) => t.isPostponeOver)
+          val readyCount = readyTasks.size
+          readyTasks.foreach((t: Task) => {
+            t.resetPostpone()
+            t.save(context)
+          })
+
+          if (readyCount > 0)
+            Util.pr(context, "Restored " + readyCount.toString + " tasks from postponed state")
+        }
+      })
+    }
   }
   override def onDestroy() = taskTable.close()
 
@@ -79,16 +104,6 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
         t.repeatTask()
         t.save(this)
       })
-
-    // restore postponed tasks that are ready
-    val readyTasks = tasks.filter((t: Task) => t.isPostponeOver)
-    val readyCount = readyTasks.size
-    readyTasks.foreach((t: Task) => {
-      t.resetPostpone()
-      t.save(this)
-    })
-  if (readyCount > 0)
-    Util.pr(this, "Restored " + readyCount.toString + " tasks from postponed state")
   }
 
   def initSyncButton(listView: ListView, id: Int) = findButton(id).setOnClickListener(onClickListener(synchronizeButtonHandler))
