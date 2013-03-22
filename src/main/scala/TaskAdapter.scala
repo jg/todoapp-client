@@ -48,7 +48,7 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
 
   def dueToday = "strftime('%Y-%m-%d', due_date) = date('now')"
 
-  def defaultQuery = selection + whereClause + dueToday + ordering
+  def defaultQuery = selection + whereClause + " and " + dueToday + ordering
 
   def taskListWhere(list: String) = " and task_list = '" + list + "' "
 
@@ -191,7 +191,7 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
       taskTitle.setPaintFlags(0)
     } else if (task.postpone.isDefined) {
       val hourDifference =
-        task.updated_at.addPeriod(task.postpone.get).hourDifference(Date.now)
+            task.updated_at.addPeriod(task.postpone.get).hourDifference(Date.now)
       if (hourDifference != 0)
         dateView.setText("postponed for " + hourDifference.toString + " hours")
       else {

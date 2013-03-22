@@ -81,11 +81,23 @@ class Task(var title: String) {
     values.put("created_at", created_at.completeFormat)
     values.put("updated_at", updated_at.completeFormat)
     values.put("priority", priority.toString)
-    if (!due_date.isEmpty) values.put("due_date", due_date.get.completeFormat)
-    if (!due_time.isEmpty) values.put("due_time", due_time.get.toInt: Integer)
+    if (due_date.isDefined)
+      values.put("due_date", due_date.get.completeFormat)
+    else
+      values.putNull("due_date")
+
+    if (due_time.isDefined)
+      values.put("due_time", due_time.get.toInt: Integer)
+    else
+      values.putNull("due_time")
+
     if (!repeat.isEmpty) values.put("repeat", repeat.get.toString)
     if (!completed_at.isEmpty) values.put("completed_at", completed_at.get.completeFormat)
-    for (v <- postpone) values.put("postpone", v.toString)
+    if (postpone.isDefined)
+      values.put("postpone", postpone.get.toString)
+    else
+      values.putNull("postpone")
+
 
     values
   }
@@ -185,7 +197,7 @@ class Task(var title: String) {
     if (completed_at.isDefined) {
       repeat match {
         case Some(RepeatAfter(period)) =>
-          Date.now.hourDifference(completed_at.get) > period.amount
+          Date.now.secondDifference(completed_at.get) > period.amount
         case repeatPattern @ Some(RepeatEvery(period)) =>
           repeatPattern.get.asInstanceOf[RepeatEvery].isNextPeriod(completed_at.get, Date.now)
         case _ => false
@@ -211,7 +223,7 @@ class Task(var title: String) {
   }
 
   def isPostponeOver: Boolean = postpone match {
-    case Some(period) => Date.now.minuteDifference(updated_at) > period.amount * 60
+    case Some(period) => Date.now.secondDifference(updated_at) > period.amount
     case _ => false
   }
 }

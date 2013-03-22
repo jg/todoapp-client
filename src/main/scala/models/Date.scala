@@ -7,6 +7,8 @@ import org.joda.time.Hours
 import org.joda.time.Hours._
 import org.joda.time.Minutes
 import org.joda.time.Minutes._
+import org.joda.time.Seconds
+import org.joda.time.Seconds._
 
 object Today { def unapply(s: String): Boolean = s.matches("[Tt]oday") }
 object Tomorrow { def unapply(s: String): Boolean = s.matches("[Tt]omorrow") }
@@ -128,6 +130,9 @@ class Date(date: DateTime) {
   def minuteDifference(date: Date) =
     Minutes.minutesBetween(date.toDateTime, this.toDateTime).getMinutes()
 
+  def secondDifference(date: Date) =
+    Seconds.secondsBetween(date.toDateTime, this.toDateTime).getSeconds()
+
   def isStartOfMonth =
     date.getDayOfMonth() == 1
 
@@ -138,5 +143,5 @@ class Date(date: DateTime) {
   def toDateTime = date
 
   def addPeriod(period: Period): Date =
-    new Date(date.plusHours(period.amount))
+    new Date(date.plusSeconds(period.amount))
 }

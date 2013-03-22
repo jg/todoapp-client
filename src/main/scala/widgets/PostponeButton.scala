@@ -13,7 +13,7 @@ case class PostponeButton(context: Context, button: Button, fragmentManager: Fra
   )
 
   lazy val postponePeriodSelectionDialog: PickerDialog = {
-    val choices = List(Hour, FourHours, SixHours, Day).map(_.toString).toArray[String]
+    val choices = List(TenSeconds, Hour, FourHours, SixHours, Day).map(_.toString).toArray[String]
     val listener = (selection: String) => {
       val postponePeriod = Period(selection).get
       val items = taskListView.checkedItems

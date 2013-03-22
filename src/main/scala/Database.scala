@@ -18,7 +18,7 @@ object TaskTable {
   }
 }
 
-class TaskTable(context: Context) extends SQLiteOpenHelper(context, "todo", null, 49) {
+class TaskTable(context: Context) extends SQLiteOpenHelper(context, "todo", null, 50) {
   var db: SQLiteDatabase = null
 
   override def onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) = {
