@@ -59,7 +59,7 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
     timer.schedule(timerTask, 1000, 1000)
   }
 
-    class RestorePostponedTask(context: Context, taskAdapter: TaskAdapter) extends TimerTask {
+  class RestorePostponedTask(context: Context, taskAdapter: TaskAdapter) extends TimerTask {
     def run() = {
       context.asInstanceOf[Activity].runOnUiThread(new Runnable() {
         override def run() {
@@ -78,6 +78,7 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
       })
     }
   }
+
   override def onDestroy() = taskTable.close()
 
   override def onBackPressed() = newTaskForm.hide()
