@@ -11,6 +11,8 @@ import android.support.v4.app.DialogFragment
 import android.view.LayoutInflater
 import android.widget.CalendarView
 import android.view.View
+import android.support.v4.app.FragmentTransaction
+import android.support.v4.app.FragmentManager
 
 class DatePickerDialog(context: Context, prompt: String, listener: (Date) => Unit)
   extends DialogFragment
@@ -47,6 +49,15 @@ class DatePickerDialog(context: Context, prompt: String, listener: (Date) => Uni
            })
 
     builder.create()
+  }
+  override def show(fmgr: FragmentManager, tag: String) = {
+    // remove previous dialog if present before showing new one
+    val fragmentTransaction = fmgr.beginTransaction()
+    val prev = fmgr.findFragmentByTag(tag)
+    if (prev != null) fragmentTransaction.remove(prev)
+    fragmentTransaction.addToBackStack(null)
+
+    super.show(fmgr: FragmentManager, tag: String)
   }
 
 }
