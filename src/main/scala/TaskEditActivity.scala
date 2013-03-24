@@ -37,11 +37,6 @@ class TaskEditActivity extends FragmentActivity with ActivityExtensions {
     initTaskEditForm()
   }
 
-  override def onPause() = {
-    super.onPause()
-    taskTable.close()
-  }
-
   def getTaskFromIntent() = {
     val intent = getIntent()
     val taskPosition = intent.getIntExtra("taskPosition", -1)

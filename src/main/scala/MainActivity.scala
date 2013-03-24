@@ -20,6 +20,7 @@ import com.android.todoapp.Implicits._
 import com.android.todoapp.Utils._
 import java.net.UnknownHostException
 import java.util.{Timer, TimerTask}
+import android.os.Handler
 
 class MainActivity extends FragmentActivity with TypedActivity with ActivityExtensions {
   var context: Context   = _
@@ -28,7 +29,8 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
   var newTaskForm: NewTaskForm = _
   var commandButton: CommandButton = _
   val taskTable = TaskTable(this)
-  var timer: Timer = _
+  var timer: Timer = new Timer()
+  var handler: Handler = _
 
   override def onCreate(bundle: Bundle) {
     taskTable.open()
@@ -56,10 +58,12 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
     findButton(R.id.synchronizeButton).setOnClickListener((view: View) => synchronizeButtonHandler(view))
 
     setupTimer()
+
+    handler = new Handler()
   }
 
   def setupTimer() = {
-    timer = new Timer()
+    // timer = new Timer()
     val timerTask = new RestoreRepeatingPostponedTasks(this, Tasks.adapter(this))
     timer.schedule(timerTask, 1000, 1000)
   }
@@ -91,7 +95,7 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
     }
 
     def run() = {
-      context.asInstanceOf[Activity].runOnUiThread(new Runnable() {
+      handler.post(new Runnable() {
         override def run() {
           val tasks = taskAdapter.allTasks
 
@@ -102,20 +106,16 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
     }
   }
 
-  override def onDestroy() = taskTable.close()
-
   override def onBackPressed() = newTaskForm.hide()
 
-  override def onPause() = {
-    super.onPause()
-    timer.cancel()
-    taskTable.close()
+  override def onStart() = {
+    super.onStart()
+    taskTable.open()
   }
 
-  override def onResume() = {
-    super.onPause()
-    taskTable.open()
-    setupTimer()
+  override def onStop() = {
+    super.onStop()
+    timer.cancel()
   }
 
   def initSyncButton(listView: ListView, id: Int) = findButton(id).setOnClickListener(onClickListener(synchronizeButtonHandler))
