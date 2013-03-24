@@ -137,11 +137,11 @@ class Task(var title: String) {
 
     def jsonKeyValue(key: String, value: Any) = {
       value match {
-        case value @ (_: Priority | _: Period | _: String) => stringJSONValue(key, value.toString)
         case value: Int => intJSONValue(key, value)
         case value: java.lang.Long => longJSONValue(key, value)
         case value: Date => stringJSONValue(key, value.completeFormat)
         case value: Time => intJSONValue(key, value.toInt)
+        case value @ _ => stringJSONValue(key, value.toString)
       }
     }
     val matchingKeyValues = if (expectedParams.isEmpty) fieldMap else fieldMap.filter(x => isExpected(x._1))
