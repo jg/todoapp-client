@@ -40,8 +40,7 @@ class TaskTable(context: Context) extends SQLiteOpenHelper(context, "todo", null
 
   def update(task: Task): Int = {
     val whereArgs: Array[String] = Array(task.created_at.completeFormat);
-    val affectedRows =
-      db.update("tasks", task.contentValues(), "created_at = ?", whereArgs)
+    db.update("tasks", task.contentValues(), "created_at = ?", whereArgs)
   }
 
   def cursor: Cursor = db.query("tasks", null, null, null, null, null, null)
