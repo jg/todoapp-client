@@ -28,6 +28,7 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
   var newTaskForm: NewTaskForm = _
   var commandButton: CommandButton = _
   val taskTable = TaskTable(this)
+  var timer: Timer = _
 
   override def onCreate(bundle: Bundle) {
     taskTable.open()
@@ -54,56 +55,67 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
     // sync button
     findButton(R.id.synchronizeButton).setOnClickListener((view: View) => synchronizeButtonHandler(view))
 
-    val timer = new Timer()
-    val timerTask = new RestorePostponedTask(this, adapter)
+    setupTimer()
+  }
+
+  def setupTimer() = {
+    timer = new Timer()
+    val timerTask = new RestoreRepeatingPostponedTasks(this, Tasks.adapter(this))
     timer.schedule(timerTask, 1000, 1000)
   }
 
-    class RestorePostponedTask(context: Context, taskAdapter: TaskAdapter) extends TimerTask {
+  class RestoreRepeatingPostponedTasks(context: Context, taskAdapter: TaskAdapter) extends TimerTask {
+    def restorePostponedTasks(tasks: Seq[Task]) = { // restore postponed tasks that are ready
+      val readyTasks = tasks.filter((t: Task) => t.isPostponeOver)
+      val readyCount = readyTasks.size
+      readyTasks.foreach((t: Task) => {
+        t.resetPostpone()
+        t.save(context)
+      })
+
+      if (readyCount > 0)
+        Util.pr(context, "Restored " + readyCount.toString + " tasks from postponed state")
+    }
+
+    def restoreRepeatingTasks(tasks: Seq[Task]) = { // restore repeating tasks that are ready
+      val readyTasks = tasks.filter((t: Task) => t.isReadyToRepeat)
+      val readyCount = readyTasks.size
+      readyTasks.foreach((t: Task) => {
+        t.repeatTask()
+        Log.i(t.toJSON(List()))
+        t.save(context)
+      })
+
+      if (readyCount > 0)
+        Util.pr(context, "Restored " + readyCount.toString + " recurring tasks from completed state")
+    }
+
     def run() = {
       context.asInstanceOf[Activity].runOnUiThread(new Runnable() {
         override def run() {
           val tasks = taskAdapter.allTasks
-          // restore postponed tasks that are ready
-          val readyTasks = tasks.filter((t: Task) => t.isPostponeOver)
-          val readyCount = readyTasks.size
-          readyTasks.foreach((t: Task) => {
-            t.resetPostpone()
-            t.save(context)
-          })
 
-          if (readyCount > 0)
-            Util.pr(context, "Restored " + readyCount.toString + " tasks from postponed state")
+          restorePostponedTasks(tasks)
+          restoreRepeatingTasks(tasks)
         }
       })
     }
   }
+
   override def onDestroy() = taskTable.close()
 
   override def onBackPressed() = newTaskForm.hide()
 
   override def onPause() = {
     super.onPause()
+    timer.cancel()
     taskTable.close()
   }
 
   override def onResume() = {
     super.onPause()
     taskTable.open()
-
-    val tasks = Tasks.adapter(this).allTasks
-
-    tasks.foreach((t: Task) => {
-      Log.i(t.updated_at.fullFormat)
-    })
-
-    // restore repeating tasks that are ready
-    tasks
-      .filter((t: Task) => t.isReadyToRepeat)
-      .foreach((t: Task) => {
-        t.repeatTask()
-        t.save(this)
-      })
+    setupTimer()
   }
 
   def initSyncButton(listView: ListView, id: Int) = findButton(id).setOnClickListener(onClickListener(synchronizeButtonHandler))

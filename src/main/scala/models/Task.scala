@@ -81,6 +81,7 @@ class Task(var title: String) {
     values.put("created_at", created_at.completeFormat)
     values.put("updated_at", updated_at.completeFormat)
     values.put("priority", priority.toString)
+
     if (due_date.isDefined)
       values.put("due_date", due_date.get.completeFormat)
     else
@@ -91,8 +92,16 @@ class Task(var title: String) {
     else
       values.putNull("due_time")
 
-    if (!repeat.isEmpty) values.put("repeat", repeat.get.toString)
-    if (!completed_at.isEmpty) values.put("completed_at", completed_at.get.completeFormat)
+    if (repeat.isDefined)
+      values.put("repeat", repeat.get.toString)
+    else
+      values.putNull("repeat")
+
+    if (completed_at.isDefined)
+      values.put("completed_at", completed_at.get.completeFormat)
+    else
+      values.putNull("completed_at")
+
     if (postpone.isDefined)
       values.put("postpone", postpone.get.toString)
     else
@@ -128,11 +137,11 @@ class Task(var title: String) {
 
     def jsonKeyValue(key: String, value: Any) = {
       value match {
-        case value @ (_: Priority | _: Period | _: String) => stringJSONValue(key, value.toString)
         case value: Int => intJSONValue(key, value)
         case value: java.lang.Long => longJSONValue(key, value)
         case value: Date => stringJSONValue(key, value.completeFormat)
         case value: Time => intJSONValue(key, value.toInt)
+        case value @ _ => stringJSONValue(key, value.toString)
       }
     }
     val matchingKeyValues = if (expectedParams.isEmpty) fieldMap else fieldMap.filter(x => isExpected(x._1))

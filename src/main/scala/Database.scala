@@ -18,7 +18,7 @@ object TaskTable {
   }
 }
 
-class TaskTable(context: Context) extends SQLiteOpenHelper(context, "todo", null, 50) {
+class TaskTable(context: Context) extends SQLiteOpenHelper(context, "todo", null, 51) {
   var db: SQLiteDatabase = null
 
   override def onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) = {
@@ -40,7 +40,8 @@ class TaskTable(context: Context) extends SQLiteOpenHelper(context, "todo", null
 
   def update(task: Task): Int = {
     val whereArgs: Array[String] = Array(task.created_at.completeFormat);
-    db.update("tasks", task.contentValues(), "created_at = ?", whereArgs)
+    val affectedRows =
+      db.update("tasks", task.contentValues(), "created_at = ?", whereArgs)
   }
 
   def cursor: Cursor = db.query("tasks", null, null, null, null, null, null)

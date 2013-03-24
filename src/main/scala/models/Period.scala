@@ -5,7 +5,7 @@ abstract class Period {
   def isEqual(startDate: Date, date: Date): Boolean
 }
 object Period {
-  def values = List(TenSeconds, Hour, FourHours, SixHours, Day, Week, TwoWeeks, Month)
+  def values = List(OneMinute, TenSeconds, Hour, FourHours, SixHours, Day, Week, TwoWeeks, Month)
   def fromString(label: String): Option[Period] = values.find(_.toString == label)
   def apply(s: String) = fromString(s)
 }
@@ -13,6 +13,12 @@ case object TenSeconds extends Period {
   override def toString = "Ten Seconds"
   def amount = 10
   def isEqual(startDate: Date, date: Date) = true
+}
+case object OneMinute extends Period {
+  override def toString = "Minute"
+  def amount = 60
+  def isEqual(startDate: Date, date: Date) =
+    startDate.secondDifference(date) <= 60
 }
 case object Hour extends Period {
   override def toString = "Hour"
@@ -69,7 +75,7 @@ case class RepeatEvery(period: Period) extends RepeatPattern {
 }
 
 object RepeatPattern {
-  val periods = List(SixHours, Day, Week, TwoWeeks, Month)
+  val periods = List(OneMinute, SixHours, Day, Week, TwoWeeks, Month)
   val patterns = periods.map(RepeatAfter(_)) ++ periods.map(RepeatEvery(_))
   val values: List[String] = List("Not Set") ++ patterns.map(_.toString)
 
