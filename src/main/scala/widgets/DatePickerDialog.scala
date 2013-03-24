@@ -14,7 +14,7 @@ import android.view.View
 import android.support.v4.app.FragmentTransaction
 import android.support.v4.app.FragmentManager
 
-class DatePickerDialog(context: Context, prompt: String, listener: (Date) => Unit)
+class DatePickerDialog(context: Context, prompt: String, listener: (Option[Date]) => Unit)
   extends DialogFragment
   with SelectionAccess[Date] {
   var view: Option[View] = None
@@ -26,7 +26,10 @@ class DatePickerDialog(context: Context, prompt: String, listener: (Date) => Uni
     case None => None
   }
 
-  def setDate(date: Date) = for (cv <- calendarView) cv.setDate(date.getMillis)
+  def setDate(date: Date) = {
+    for (cv <- calendarView) cv.setDate(date.getMillis)
+    setSelection(date)
+  }
 
   override def onCreateDialog(savedInstanceState: Bundle): Dialog = {
     val builder = new AlertDialog.Builder(context)
@@ -38,18 +41,20 @@ class DatePickerDialog(context: Context, prompt: String, listener: (Date) => Uni
               for (calendarView <- calendarView) {
                  val date = Date.fromMillis(calendarView.getDate())
                  setSelection(date)
-                 listener(date)
+                 listener(Some(date))
                }
              }
            })
            .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                override def onClick(dialog: DialogInterface, id: Int) {
                  DatePickerDialog.this.getDialog().cancel();
+                 listener(None)
                }
            })
 
     builder.create()
   }
+
   override def show(fmgr: FragmentManager, tag: String) = {
     // remove previous dialog if present before showing new one
     val fragmentTransaction = fmgr.beginTransaction()

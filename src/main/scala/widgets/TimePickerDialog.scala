@@ -14,7 +14,7 @@ import android.widget.TimePicker
 import java.util.Calendar
 import android.text.format.DateFormat
 
-class TimePickerDialog(context: Context, listener: (Time) => Unit) extends DialogFragment
+class TimePickerDialog(context: Context, listener: (Option[Time]) => Unit) extends DialogFragment
   with TimePickerDialog.OnTimeSetListener
   with SelectionAccess[Time] {
     var initialTime: Option[Time] = None
@@ -23,7 +23,7 @@ class TimePickerDialog(context: Context, listener: (Time) => Unit) extends Dialo
     def handler = new TimePickerDialog.OnTimeSetListener {
       def onTimeSet(view: TimePicker, hour: Int, minute: Int) = {
         setSelection(Time(hour, minute))
-        listener(Time(hour, minute))
+        listener(Some(Time(hour, minute)))
       }
     }
 
@@ -43,9 +43,12 @@ class TimePickerDialog(context: Context, listener: (Time) => Unit) extends Dialo
 
     def onTimeSet(view: TimePicker, hour: Int, minute: Int) = {
       setSelection(Time(hour, minute))
-      listener(Time(hour, minute))
+      listener(Some(Time(hour, minute)))
     }
 
-    def setInitialTime(time: Time) = { initialTime = Some(time) }
+    def setInitialTime(time: Time) = {
+      initialTime = Some(time)
+      setSelection(time)
+    }
 
 }

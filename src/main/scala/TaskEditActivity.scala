@@ -17,12 +17,17 @@ class TaskEditActivity extends FragmentActivity with ActivityExtensions {
   val taskTable = TaskTable(this)
 
   lazy val dateSelectionDialog = {
-    val listener = (selection: Date) =>
-      setDueDate(Some(selection))
+    val listener = (selection: Option[Date]) => selection match {
+      case Some(date) => setDueDateButtonText(date.dateFormat)
+      case None => setDueDateButtonText("Not Set")
+    }
     new DatePickerDialog(this, "Date", listener)
   }
   lazy val timeSelectionDialog = {
-    val listener = (time: Time) => setDueTime(Some(time))
+    val listener = (selection: Option[Time]) => selection match {
+      case Some(time) => setDueTimeButtonText(time.toString)
+      case None => setDueTimeButtonText("Not Set")
+    }
     new TimePickerDialog(this, listener)
   }
 
@@ -44,9 +49,9 @@ class TaskEditActivity extends FragmentActivity with ActivityExtensions {
     adapter.getTask(taskPosition)
   }
 
-  def setDueDate(date: Option[Date]) = findButton(R.id.due_date).setText(if (date.isEmpty) NotSet else date.get.dateFormat)
+  def setDueDateButtonText(text: String) = findButton(R.id.due_date).setText(text)
 
-  def setDueTime(time: Option[Time]) = findButton(R.id.due_time).setText(if (time.isEmpty) NotSet else time.get.toString)
+  def setDueTimeButtonText(text: String) = findButton(R.id.due_time).setText(text)
 
   def TaskListRestrictions = app.TaskListRestrictions
 
@@ -122,15 +127,25 @@ class TaskEditActivity extends FragmentActivity with ActivityExtensions {
     populateTaskPrioritySpinner()
     populateTaskListSpinner()
     populateTaskRepeatSpinner()
-    for (date <- task.due_date) dateSelectionDialog.setDate(date)
+    for (due_date <- task.due_date) {
+      dateSelectionDialog.setDate(due_date)
+    }
     for (time <- task.due_time) timeSelectionDialog.setInitialTime(time)
 
     setTaskTitle()
 
-    setDueDate(task.due_date)
     setDueDateClickHandler()
 
-    setDueTime(task.due_time)
+    setDueDateButtonText(
+      if (task.due_date.isDefined)
+        task.due_date.get.dateFormat
+      else "Not Set")
+
+    setDueTimeButtonText(
+      if (task.due_time.isDefined)
+        task.due_time.toString
+      else "Not Set")
+
     setDueTimeClickHandler()
 
     setSaveButtonHandler()
