@@ -22,6 +22,8 @@ import java.net.UnknownHostException
 import java.util.{Timer, TimerTask}
 import android.os.Handler
 
+import android.content.SharedPreferences
+
 class MainActivity extends FragmentActivity with TypedActivity with ActivityExtensions {
   var context: Context   = _
   var taskList: TaskListView = _
@@ -171,20 +173,44 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
       })
     }
 
-    val username = "juliusz.gonera@gmail.com"
-    val password = "testtest"
-    try {
-      val collection = Collection("http://polar-scrubland-5755.herokuapp.com/", username, password)
-      // val collection = Collection("http://192.168.0.13:3000", username, password)
+    def synchronize(c: Credentials) = {
+      try {
+        val username = c.username
+        val password = c.password
+        val collection = Collection("http://polar-scrubland-5755.herokuapp.com/", username, password)
 
-      for (links <- collection.links; taskLink <- links if taskLink.rel == "tasks" ) {
-        val collection = Collection(taskLink.href, username, password)
+        for (links <- collection.links; taskLink <- links if taskLink.rel == "tasks" ) {
+          val collection = Collection(taskLink.href, username, password)
 
-        getTasks(collection)
-        sendTasks(collection, username, password)
+          getTasks(collection)
+          sendTasks(collection, username, password)
+        }
+      } catch {
+        case e: java.net.UnknownHostException => Util.pr(this, "No connection")
       }
-    } catch {
-      case e: java.net.UnknownHostException => Util.pr(this, "No connection")
+    }
+
+    val listener = (c: Credentials) => {
+      if (!Credentials.isCorrect(c)) {
+        Util.pr(this, "Credentials not correct, try again")
+      } else {
+        Util.pr(this, "Credentials saved")
+        Credentials.store(this, c)
+
+        synchronize(c)
+      }
+    }
+
+    // show dialog if credentials not already present
+    Credentials.get(this) match {
+      case Some(credentials) => {
+        Log.i("Using existing credentials " + credentials.toString)
+        listener(credentials)
+      }
+      case None => {
+        val dialog = new LoginDialog(this, listener)
+        dialog.show(getSupportFragmentManager(), "login-dialog")
+      }
     }
   }
 }
