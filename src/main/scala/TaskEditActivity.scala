@@ -130,7 +130,9 @@ class TaskEditActivity extends FragmentActivity with ActivityExtensions {
     for (due_date <- task.due_date) {
       dateSelectionDialog.setDate(due_date)
     }
-    for (time <- task.due_time) timeSelectionDialog.setInitialTime(time)
+    for (time <- task.due_time) {
+      timeSelectionDialog.setInitialTime(time)
+    }
 
     setTaskTitle()
 
@@ -143,7 +145,7 @@ class TaskEditActivity extends FragmentActivity with ActivityExtensions {
 
     setDueTimeButtonText(
       if (task.due_time.isDefined)
-        task.due_time.toString
+        task.due_time.get.toString
       else "Not Set")
 
     setDueTimeClickHandler()
