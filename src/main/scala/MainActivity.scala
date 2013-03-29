@@ -57,13 +57,11 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
     // sync button
     findButton(R.id.synchronizeButton).setOnClickListener((view: View) => synchronizeButtonHandler(view))
 
-    setupTimer()
-
     handler = new Handler()
   }
 
   def setupTimer() = {
-    // timer = new Timer()
+    timer = new Timer()
     val timerTask = new RestoreRepeatingPostponedTasks(this, Tasks.adapter(this))
     timer.schedule(timerTask, 1000, 1000)
   }
@@ -107,6 +105,16 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
   }
 
   override def onBackPressed() = newTaskForm.hide()
+
+  override def onResume() = {
+    super.onResume()
+    setupTimer()
+  }
+
+  override def onPause() = {
+    super.onPause()
+    timer.cancel()
+  }
 
   override def onStart() = {
     super.onStart()
