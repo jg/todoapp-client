@@ -25,12 +25,12 @@ import android.os.Handler
 import android.content.SharedPreferences
 
 class MainActivity extends FragmentActivity with TypedActivity with ActivityExtensions {
-  var context: Context   = _
+  implicit var context: Context   = _
   var taskList: TaskListView = _
 
   var newTaskForm: NewTaskForm = _
   var commandButton: CommandButton = _
-  val taskTable = TaskTable(this)
+  implicit val taskTable = TaskTable(this)
   var timer: Timer = new Timer()
   var handler: Handler = _
 
@@ -41,7 +41,6 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
     setContentView(R.layout.main)
 
     // Init widgets
-    context = this
     taskList = new TaskListView(context, findViewById(R.id.taskList).asInstanceOf[ListView])
 
     val container = findViewById(R.id.container)
@@ -131,65 +130,6 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
   def initSyncButton(listView: ListView, id: Int) = findButton(id).setOnClickListener(onClickListener(synchronizeButtonHandler))
 
   def synchronizeButtonHandler(view: View): Unit = {
-    def findTask(task: Task): Option[Task] = Tasks.adapter(this).allTasks.find(_.created_at == task.created_at)
-
-    def getTasks(tasks: Collection) = {
-      Log.i("-------------------------- get from server -----------------------------------")
-      // get tasks from server
-      for (item <- tasks.items.flatten) {
-        val taskParams =
-          for (data <- item.data.flatten; value <- data.value; name = data.name)
-            yield (name, value): (String, Any)
-
-        val task = Task.deserialize(taskParams)
-
-
-        val dbTask = findTask(task)
-        if (dbTask.isEmpty) { // task from server not present in db
-          Log.i(task.title + " with ctime " + task.created_at.completeFormat + " not present in the db, inserting")
-          taskTable.insert(task)
-        } else {
-          if (task.updated_at.getMillis > dbTask.get.updated_at.getMillis) { // newer task from server
-            Log.i(task.title + " with ctime " + task.created_at.completeFormat + " found in db, server one is newer, updating")
-            taskTable.update(task)
-          } else {
-            Log.i(task.title + " with ctime " + task.created_at.completeFormat + " found in db, server one is older")
-          }
-        }
-
-      }
-    }
-
-    def sendTasks(tasks: Collection, username: String, password: String) = {
-      Log.i("-------------------------- send to server -----------------------------------")
-      // send tasks to server
-      val expectedParams = tasks.template.get.map(_.name)
-      val adapter = Tasks.adapter(this)
-
-      adapter.allTasks.foreach((task: Task) => {
-        Log.i("sent " + task.toJSON(List()) + " to server")
-        val json = task.toJSON(expectedParams)
-        Collection.postJSON(tasks.href, username, password, json)
-      })
-    }
-
-    def synchronize(c: Credentials) = {
-      try {
-        val username = c.username
-        val password = c.password
-        val collection = Collection("http://polar-scrubland-5755.herokuapp.com/", username, password)
-
-        for (links <- collection.links; taskLink <- links if taskLink.rel == "tasks" ) {
-          val collection = Collection(taskLink.href, username, password)
-
-          getTasks(collection)
-          sendTasks(collection, username, password)
-        }
-      } catch {
-        case e: java.net.UnknownHostException => Util.pr(this, "No connection")
-      }
-    }
-
     val listener = (c: Credentials) => {
       if (!Credentials.isCorrect(c)) {
         Util.pr(this, "Credentials not correct, try again")
@@ -197,7 +137,7 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
         Util.pr(this, "Credentials saved")
         Credentials.store(this, c)
 
-        synchronize(c)
+        Tasks.synchronize(c)
       }
     }
 
