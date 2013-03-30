@@ -1,5 +1,6 @@
 package com.android.todoapp
 import android.content.Context
+import android.app.ProgressDialog
 import android.content.SharedPreferences
 
 case class Credentials(username: String, password: String)
@@ -7,8 +8,10 @@ case class Credentials(username: String, password: String)
 object Credentials {
   val PrefsName = "todoapp"
 
-  def isCorrect(c: Credentials): Boolean = {
+  def isCorrect(c: Credentials, context: Context): Boolean = {
+    val progressDialog = ProgressDialog.show(context, "", "Checking credentials...", true);
     HttpAgent.get(App.host, c.username, c.password)
+    progressDialog.dismiss()
     HttpAgent.statusCode == 200
   }
 

@@ -20,12 +20,13 @@ import com.android.todoapp.Implicits._
 import com.android.todoapp.Utils._
 import java.net.UnknownHostException
 import java.util.{Timer, TimerTask}
+import android.app.ProgressDialog
 import android.os.Handler
 
 import android.content.SharedPreferences
 
 class MainActivity extends FragmentActivity with TypedActivity with ActivityExtensions {
-  implicit var context: Context   = _
+  implicit val context: Context   = this
   var taskList: TaskListView = _
 
   var newTaskForm: NewTaskForm = _
@@ -131,7 +132,7 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
 
   def synchronizeButtonHandler(view: View): Unit = {
     val listener = (c: Credentials) => {
-      if (!Credentials.isCorrect(c)) {
+      if (!Credentials.isCorrect(c, this)) {
         Util.pr(this, "Credentials not correct, try again")
       } else {
         Util.pr(this, "Credentials saved")
