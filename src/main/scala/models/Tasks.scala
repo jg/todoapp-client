@@ -54,17 +54,38 @@ object Tasks {
     }
   }
 
-  class SynchronizeTask(context: Context, taskTable: TaskTable) extends AsyncTask[Credentials, Void, Void] {
+  class CheckCredentialsTask(context: Context, taskTable: TaskTable) extends MyAsyncTask[Credentials, Void, Boolean] {
+    var progressDialog: ProgressDialog = _
+    var credentials: Credentials = _
+
+    override def onPreExecute() =
+      progressDialog = ProgressDialog.show(context, "", "Checking credentials...", true)
+
+    override def onPostExecute(isCorrect: Boolean) = {
+      progressDialog.dismiss()
+      if (isCorrect) {
+        Util.pr(context, "Credentials saved")
+        Credentials.store(context, credentials)
+      } else {
+        Util.pr(context, "Credentials not correct, try again")
+      }
+    }
+
+    override def doInBackground(c: Credentials): Boolean =  {
+      credentials = c
+      Credentials.isCorrect(c, context)
+    }
+  }
+
+  class SynchronizeTask(context: Context, taskTable: TaskTable) extends MyAsyncTask[Credentials, Void, Void] {
     var progressDialog: ProgressDialog = _
 
-    override def doInBackground(c: Credentials*): Void = {
-      // synchronize(c.head)
-      // null
+    override def doInBackground(c: Credentials): Void = {
       try {
         implicit val con: Context = context
         implicit val t: TaskTable = taskTable
-        val username = c.head.username
-        val password = c.head.password
+        val username = c.username
+        val password = c.password
         val collection = Collection("http://polar-scrubland-5755.herokuapp.com/", username, password)
 
         for (links <- collection.links; taskLink <- links if taskLink.rel == "tasks" ) {
@@ -80,13 +101,11 @@ object Tasks {
       null
     }
 
-    override def onPreExecute() = {
-      progressDialog = ProgressDialog.show(context, "Synchronizing", "Synchronization in progress...", true);
-    }
+    override def onPreExecute() =
+      progressDialog = ProgressDialog.show(context, "", "Synchronization in progress...", true);
 
-    override def onPostExecute(v: Void) = {
+    override def onPostExecute(v: Void) =
       progressDialog.dismiss()
-    }
   }
 
   def sendTasks(tasks: Collection, username: String, password: String)(implicit context: Context) = {
@@ -100,6 +119,11 @@ object Tasks {
       val json = task.toJSON(expectedParams)
       Collection.postJSON(tasks.href, username, password, json)
     })
+  }
+
+
+  def checkCredentials(c: Credentials)(implicit context: Context, taskTable: TaskTable): Boolean = {
+    (new CheckCredentialsTask(context, taskTable)).execute(c).get()
   }
 
   def synchronize(c: Credentials)(implicit context: Context, taskTable: TaskTable) = {

@@ -132,12 +132,7 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
 
   def synchronizeButtonHandler(view: View): Unit = {
     val listener = (c: Credentials) => {
-      if (!Credentials.isCorrect(c, this)) {
-        Util.pr(this, "Credentials not correct, try again")
-      } else {
-        Util.pr(this, "Credentials saved")
-        Credentials.store(this, c)
-
+      if (Tasks.checkCredentials(c)) {
         Tasks.synchronize(c)
       }
     }

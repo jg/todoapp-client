@@ -9,9 +9,7 @@ object Credentials {
   val PrefsName = "todoapp"
 
   def isCorrect(c: Credentials, context: Context): Boolean = {
-    val progressDialog = ProgressDialog.show(context, "", "Checking credentials...", true);
     HttpAgent.get(App.host, c.username, c.password)
-    progressDialog.dismiss()
     HttpAgent.statusCode == 200
   }
 
