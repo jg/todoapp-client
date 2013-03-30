@@ -15,7 +15,7 @@ import android.support.v4.app.FragmentTransaction
 import android.support.v4.app.FragmentManager
 import android.widget.EditText
 
-class LoginDialog(context: Context, listener: (Credentials) => Unit)
+class LoginDialog(context: Context, listener: (Credentials) => Any)
   extends DialogFragment {
   var view: Option[View] = None
 

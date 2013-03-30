@@ -4,6 +4,8 @@ import scala.collection.mutable.ListBuffer
 import android.content.Context
 import android.widget.{ArrayAdapter, CursorAdapter, SimpleCursorAdapter}
 import android.database.Cursor
+import android.app.ProgressDialog
+import android.os.AsyncTask
 
 object Tasks {
   def adapter(context: Context): TaskAdapter = TaskAdapter(context, TaskTable(context).cursor)
@@ -52,6 +54,60 @@ object Tasks {
     }
   }
 
+  class CheckCredentialsTask(context: Context, taskTable: TaskTable) extends MyAsyncTask[Credentials, Void, Boolean] {
+    var progressDialog: ProgressDialog = _
+    var credentials: Credentials = _
+
+    override def onPreExecute() =
+      progressDialog = ProgressDialog.show(context, "", "Checking credentials...", true)
+
+    override def onPostExecute(isCorrect: Boolean) = {
+      progressDialog.dismiss()
+      if (isCorrect) {
+        Util.pr(context, "Credentials saved")
+        Credentials.store(context, credentials)
+      } else {
+        Util.pr(context, "Credentials not correct, try again")
+      }
+    }
+
+    override def doInBackground(c: Credentials): Boolean =  {
+      credentials = c
+      Credentials.isCorrect(c, context)
+    }
+  }
+
+  class SynchronizeTask(context: Context, taskTable: TaskTable) extends MyAsyncTask[Credentials, Void, Void] {
+    var progressDialog: ProgressDialog = _
+
+    override def doInBackground(c: Credentials): Void = {
+      try {
+        implicit val con: Context = context
+        implicit val t: TaskTable = taskTable
+        val username = c.username
+        val password = c.password
+        val collection = Collection("http://polar-scrubland-5755.herokuapp.com/", username, password)
+
+        for (links <- collection.links; taskLink <- links if taskLink.rel == "tasks" ) {
+          val collection = Collection(taskLink.href, username, password)
+
+          getTasks(collection)
+          sendTasks(collection, username, password)
+        }
+
+      } catch {
+        case e: java.net.UnknownHostException => Util.pr(context, "No connection")
+      }
+      null
+    }
+
+    override def onPreExecute() =
+      progressDialog = ProgressDialog.show(context, "", "Synchronization in progress...", true);
+
+    override def onPostExecute(v: Void) =
+      progressDialog.dismiss()
+  }
+
   def sendTasks(tasks: Collection, username: String, password: String)(implicit context: Context) = {
     Log.i("-------------------------- send to server -----------------------------------")
     // send tasks to server
@@ -65,21 +121,13 @@ object Tasks {
     })
   }
 
+
+  def checkCredentials(c: Credentials)(implicit context: Context, taskTable: TaskTable): Boolean = {
+    (new CheckCredentialsTask(context, taskTable)).execute(c).get()
+  }
+
   def synchronize(c: Credentials)(implicit context: Context, taskTable: TaskTable) = {
-    try {
-      val username = c.username
-      val password = c.password
-      val collection = Collection("http://polar-scrubland-5755.herokuapp.com/", username, password)
-
-      for (links <- collection.links; taskLink <- links if taskLink.rel == "tasks" ) {
-        val collection = Collection(taskLink.href, username, password)
-
-        getTasks(collection)
-        sendTasks(collection, username, password)
-      }
-    } catch {
-      case e: java.net.UnknownHostException => Util.pr(context, "No connection")
-    }
+    (new SynchronizeTask(context, taskTable)).execute(c)
   }
 
 
