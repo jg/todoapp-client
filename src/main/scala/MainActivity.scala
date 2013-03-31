@@ -1,29 +1,23 @@
 package com.android.todoapp
 
 import android.app.Activity
-import android.os.Bundle
-import android.view.{View, LayoutInflater, KeyEvent}
-import android.widget.{Toast, ListView, Button, AdapterView, TextView, CheckedTextView, TabHost, CompoundButton}
-import android.widget.TabHost.TabContentFactory
-import android.widget.AdapterView.{OnItemClickListener, OnItemSelectedListener}
-import android.content.{Intent, Context}
-import collection.JavaConversions._
-import android.util.SparseBooleanArray
-import android.widget.ArrayAdapter
-import android.os.IBinder
-import android.support.v4.app.DialogFragment
-import android.support.v4.app.FragmentActivity
-import android.widget.AbsListView
+import android.app.ProgressDialog
 import android.content.DialogInterface
 import android.content.DialogInterface.OnClickListener
+import android.content.{Intent, Context, SharedPreferences}
+import android.os.{Bundle, Handler, IBinder}
+import android.support.v4.app.{DialogFragment, FragmentActivity, FragmentManager}
+import android.util.SparseBooleanArray
+import android.view.{Menu, MenuItem, View, LayoutInflater, KeyEvent}
+import android.widget.AdapterView.{OnItemClickListener, OnItemSelectedListener}
+import android.widget.TabHost.TabContentFactory
+import android.widget.{AbsListView, ArrayAdapter, Toast, ListView, Button, AdapterView, TextView, CheckedTextView, TabHost, CompoundButton}
+import collection.JavaConversions._
 import com.android.todoapp.Implicits._
 import com.android.todoapp.Utils._
+import java.lang.CharSequence
 import java.net.UnknownHostException
 import java.util.{Timer, TimerTask}
-import android.app.ProgressDialog
-import android.os.Handler
-
-import android.content.SharedPreferences
 
 class MainActivity extends FragmentActivity with TypedActivity with ActivityExtensions {
   implicit val context: Context    = this
@@ -34,6 +28,20 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
   var commandButton: CommandButton = _
   var timer: Timer                 = new Timer()
   var handler: Handler             = _
+
+  lazy val postponePeriodSelectionDialog: PickerDialog = {
+    val choices = List(TenSeconds, Hour, FourHours, SixHours, Day).map(_.toString).toArray[String]
+    val listener = (selection: String) => {
+      val items = taskList.checkedItems
+      items.foreach((task: Task) => {
+        task.setPostpone(Period(selection).get)
+        task.save(context)
+      })
+      taskList.unCheckAllItems()
+      Util.pr(context, "Postponed " + items.size + " tasks")
+    }
+    new PickerDialog(context, choices.asInstanceOf[Array[CharSequence]], listener)
+  }
 
   override def onCreate(bundle: Bundle) {
     taskTable.open()
@@ -50,7 +58,6 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
     val currentTaskListSpinner = findViewById(R.id.current_task_list).asInstanceOf[CurrentTaskListSpinner]
     newTaskForm = new NewTaskForm(this, container, getResources(), getSupportFragmentManager(), currentTaskListSpinner)
     commandButton = new CommandButton(context, container, taskList, R.id.commandButton)
-    new PostponeButton(context, findButton(R.id.postponeButton),  getSupportFragmentManager(), taskList)
 
     val adapter = Tasks.adapter(context)
     adapter.registerCheckBoxStateChangeHandler((buttonView: CompoundButton, isChecked: Boolean) =>
@@ -120,6 +127,31 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
       case None => {
         val dialog = new LoginDialog(this, listener)
         dialog.show(getSupportFragmentManager(), "login-dialog")
+      }
+    }
+  }
+
+  override def onCreateOptionsMenu(menu: Menu): Boolean = {
+    val inflater = getMenuInflater();
+    inflater.inflate(R.menu.menu, menu);
+    true
+  }
+
+  override def onOptionsItemSelected(item: MenuItem): Boolean = {
+    item.getItemId() match {
+      case R.id.lists => {
+        Util.pr(this, "Manage lists")
+        true
+      }
+      case R.id.postpone => {
+        if (taskList.checkedItemCount > 0)
+          postponePeriodSelectionDialog.show(getSupportFragmentManager(), "postpone-selection")
+        else Util.pr(context, "No tasks selected")
+        true
+      }
+      case _ => {
+        Util.pr(this, "Default")
+        true
       }
     }
   }

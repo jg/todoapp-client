@@ -22,13 +22,6 @@
     android:layout_height="wrap_content"
     android:layout_width="wrap_content"
     android:text="sync"
-    android:layout_toLeftOf="@+id/postponeButton" />
-
-  <Button
-    android:id="@+id/postponeButton"
-    android:layout_height="wrap_content"
-    android:layout_width="wrap_content"
-    android:text="postpone"
     android:layout_toLeftOf="@+id/commandButton" />
 
   <Button
