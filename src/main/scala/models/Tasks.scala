@@ -130,5 +130,32 @@ object Tasks {
     (new SynchronizeTask(context, taskTable)).execute(c)
   }
 
+  def restorePostponed()(implicit context: Context) = { // restore postponed tasks that are ready
+    val tasks = adapter(context).allTasks
+    val readyTasks = tasks.filter((t: Task) => t.isPostponeOver)
+    val readyCount = readyTasks.size
+    readyTasks.foreach((t: Task) => {
+      t.resetPostpone()
+      t.save(context)
+    })
+
+    if (readyCount > 0)
+      Util.pr(context, "Restored " + readyCount.toString + " tasks from postponed state")
+  }
+
+  def restoreRepeating()(implicit context: Context) = { // restore repeating tasks that are ready
+    val tasks = adapter(context).allTasks
+    val readyTasks = tasks.filter((t: Task) => t.isReadyToRepeat)
+    val readyCount = readyTasks.size
+    readyTasks.foreach((t: Task) => {
+      t.repeatTask()
+      t.save(context)
+    })
+
+    if (readyCount > 0)
+      Util.pr(context, "Restored " + readyCount.toString + " recurring tasks from completed state")
+  }
+
+
 
 }

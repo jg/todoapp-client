@@ -26,14 +26,14 @@ import android.os.Handler
 import android.content.SharedPreferences
 
 class MainActivity extends FragmentActivity with TypedActivity with ActivityExtensions {
-  implicit val context: Context   = this
-  var taskList: TaskListView = _
+  implicit val context: Context    = this
+  implicit val taskTable           = TaskTable(this)
 
-  var newTaskForm: NewTaskForm = _
+  var taskList: TaskListView       = _
+  var newTaskForm: NewTaskForm     = _
   var commandButton: CommandButton = _
-  implicit val taskTable = TaskTable(this)
-  var timer: Timer = new Timer()
-  var handler: Handler = _
+  var timer: Timer                 = new Timer()
+  var handler: Handler             = _
 
   override def onCreate(bundle: Bundle) {
     taskTable.open()
@@ -69,38 +69,12 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
   }
 
   class RestoreRepeatingPostponedTasks(context: Context, taskAdapter: TaskAdapter) extends TimerTask {
-    def restorePostponedTasks(tasks: Seq[Task]) = { // restore postponed tasks that are ready
-      val readyTasks = tasks.filter((t: Task) => t.isPostponeOver)
-      val readyCount = readyTasks.size
-      readyTasks.foreach((t: Task) => {
-        t.resetPostpone()
-        t.save(context)
-      })
-
-      if (readyCount > 0)
-        Util.pr(context, "Restored " + readyCount.toString + " tasks from postponed state")
-    }
-
-    def restoreRepeatingTasks(tasks: Seq[Task]) = { // restore repeating tasks that are ready
-      val readyTasks = tasks.filter((t: Task) => t.isReadyToRepeat)
-      val readyCount = readyTasks.size
-      readyTasks.foreach((t: Task) => {
-        t.repeatTask()
-        Log.i(t.toJSON(List()))
-        t.save(context)
-      })
-
-      if (readyCount > 0)
-        Util.pr(context, "Restored " + readyCount.toString + " recurring tasks from completed state")
-    }
-
     def run() = {
       handler.post(new Runnable() {
         override def run() {
-          val tasks = taskAdapter.allTasks
-
-          restorePostponedTasks(tasks)
-          restoreRepeatingTasks(tasks)
+          implicit val c = context
+          Tasks.restorePostponed()
+          Tasks.restoreRepeating()
         }
       })
     }
