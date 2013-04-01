@@ -7,7 +7,7 @@
     android:id="@+id/container"
     >
 
-  <com.android.todoapp.CurrentTaskListSpinner
+  <com.android.todoapp.Spinner
     android:id="@+id/current_task_list"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content" 

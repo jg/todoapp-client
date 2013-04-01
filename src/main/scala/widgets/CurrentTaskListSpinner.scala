@@ -7,28 +7,18 @@ import android.widget.AdapterView
 import android.view.View
 import com.android.todoapp.Implicits._
 import java.util.Calendar
+import android.database.sqlite.SQLiteDatabase
 
-class CurrentTaskListSpinner(context: Context, attrs: AttributeSet) extends Spinner(context, attrs) with SelectionAccess[TaskListRestriction] {
-  val adapter = Tasks.adapter(context)
+class CurrentTaskListSpinner(spinner: Spinner, listener: (TaskListRestriction) => Any)(implicit context: Context) {
+  val app = context.getApplicationContext().asInstanceOf[App]
+  val TaskListRestrictions = app.TaskListRestrictions
 
-  def app = context.getApplicationContext().asInstanceOf[App]
+  spinner.fromArray(TaskListRestrictions.all.map(_.toString).toArray) // Initialize spinner values
 
-  def TaskListRestrictions = app.TaskListRestrictions
-
-  fromArray(TaskListRestrictions.all.map(_.toString).toArray) // Initialize spinner values
-  setSelection(TaskListRestrictions.current.toString) // Set starting selection
-
-  setOnItemSelectedListener((parent: AdapterView[_], view: View, pos: Int, id: Long) => {
+  spinner.setOnItemSelectedListener((parent: AdapterView[_], view: View, pos: Int, id: Long) => {
     val choice = TaskListRestrictions.at(pos)
     TaskListRestrictions.setCurrent(choice)
-    setSelection(choice)
-
-    choice match {
-      case FilterToday => adapter.showTasksDueToday()
-      case FilterThisWeek => adapter.showTasksDueThisWeek()
-      case TaskList(list) => adapter.showTasksInList(list)
-      case _ => ()
-    }
+    listener(choice)
   })
 
 }

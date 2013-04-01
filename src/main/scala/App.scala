@@ -13,7 +13,7 @@ class App extends Application {
     val taskListRestrictions: Queue[TaskListRestriction] = Queue(FilterToday, FilterThisWeek)
     val defaultTaskLists: Queue[TaskListRestriction] =
       Queue(TaskList("Inbox"), TaskList("Goals"), TaskList("Habits"))
-    var currentTaskListRestriction: TaskListRestriction = taskListRestrictions(0)
+    var currentTaskListRestriction: TaskListRestriction = defaultTaskLists(0)
 
     Log.i(currentTaskListRestriction.toString)
 
@@ -37,4 +37,5 @@ class App extends Application {
 
 object App {
   def host = "http://polar-scrubland-5755.herokuapp.com/"
+  val DbVersion = 84
 }

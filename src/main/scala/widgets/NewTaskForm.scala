@@ -16,11 +16,12 @@ import android.support.v4.app.DialogFragment
 import android.support.v4.app.FragmentActivity
 import android.content.DialogInterface
 import android.content.DialogInterface.OnClickListener
+import android.database.sqlite.SQLiteDatabase
 
 import com.android.todoapp.Implicits._
 import com.android.todoapp.Utils._
 
-class NewTaskForm(context: Context, view: View, resources: Resources, fragmentManager: FragmentManager, currentTaskListSpinner: CurrentTaskListSpinner) {
+class NewTaskForm(view: View, resources: Resources, fragmentManager: FragmentManager, currentTaskList: TaskListRestriction)(implicit context: Context, conn: SQLiteDatabase) {
 
   // buttons
 
@@ -82,15 +83,12 @@ class NewTaskForm(context: Context, view: View, resources: Resources, fragmentMa
   val input = findViewById(R.id.task_title_input).asInstanceOf[TextView]
   input.setOnEditorActionListener(onEditorActionListener(handleTaskTitleInputEnterKey))
 
-  def handleTaskTitleInputEnterKey(v: TextView, actionId: Int, event: KeyEvent) = {
+    def handleTaskTitleInputEnterKey(v: TextView, actionId: Int, event: KeyEvent) = {
     def addNewTask(title: String) = {
       val task = new Task(title)
 
-      task.task_list = currentTaskListSpinner.selection.get match {
-        case FilterToday => "Inbox"
-        case FilterThisWeek => "Inbox"
-        case TaskList(list) => list
-      }
+      task.setTaskList(currentTaskList.toString)
+
       if (prioritySelectionDialog.hasSelection)
         task.priority = Priority(prioritySelectionDialog.selection.get)
       if (dateSelectionDialog.hasSelection)
@@ -100,7 +98,8 @@ class NewTaskForm(context: Context, view: View, resources: Resources, fragmentMa
       if (repeatSelectionDialog.hasSelection)
         task.repeat   = RepeatPattern(repeatSelectionDialog.selection.get)
 
-      Tasks.add(context, task)
+      Log.i(task.toJSON(List()))
+      Tasks.add(task)
       Util.pr(context, "New Task Added")
     }
 

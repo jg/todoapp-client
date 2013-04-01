@@ -1,5 +1,6 @@
 package com.android.todoapp
 
+import android.database.sqlite.SQLiteDatabase
 import android.content.Context
 import android.widget.{TextView, CheckBox, FilterQueryProvider, CursorAdapter, CompoundButton}
 import android.database.Cursor
@@ -10,31 +11,32 @@ import android.graphics.Color
 import com.android.todoapp.Utils._
 import android.widget.Toast
 import android.graphics.Paint
-
-object TaskAdapter {
-  var adapter: Option[TaskAdapter] = None
-
-  def apply(context: Context, cursor: Cursor): TaskAdapter = {
-    if (adapter.isEmpty) adapter = Some(new TaskAdapter(context, cursor))
-    adapter.get
-  }
-}
+import android.os.Handler
 
 class DBQuery(queryGenerator: () => String) {
   def toSQL = queryGenerator()
 }
 object DBQuery { def apply(f: () => String) = new DBQuery(f)}
 
-class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(context, cursor) {
-  val taskTable = TaskTable(context)
+object TaskAdapter {
+  private[this] var taskAdapter: Option[TaskAdapter] = None
+  def apply(context: Context, cursor: Cursor): TaskAdapter = taskAdapter match {
+    case Some(adapter) => adapter
+    case None => {
+      taskAdapter = Some(new TaskAdapter(context, cursor))
+      taskAdapter.get
+    }
+  }
+}
 
+class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(context, cursor, true) {
+  val taskTable = new TaskTable()
   var checkBoxStateChangeHandler: Option[(CompoundButton, Boolean) => Unit] = None
   var taskClickHandler: Option[(Int) => Unit] = None
-
   // var currentQuery: Option[String] = None
   var currentQuery: DBQuery = DBQuery(() => defaultQuery)
-
   var isShowingCompletedTasks = false
+  implicit val c: Context = context
 
   def showIncompleteTasks() = {
     isShowingCompletedTasks = false
@@ -67,7 +69,7 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
     case false => "where " + postponeWhereClause + "and" + completedTasksWhere + " "
   }
 
-  def selection = "select * from tasks "
+  def selection = "select tasks.*, task_lists.name as task_list from tasks inner join task_lists on task_lists._id = tasks.task_list_id "
 
   def showTasksDueToday() = {
     currentQuery = DBQuery(() =>
@@ -101,22 +103,7 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
 
   def getTask(i: Integer): Task = Task.fromCursor(getItem(i).asInstanceOf[Cursor])
 
-  def allTasks: Seq[Task] = {
-    // val cursor = taskTable.db.rawQuery("select * from tasks", null)
-    val cursor = taskTable.db.query("tasks", null, null, null, null, null, null, null)
-    val lst = scala.collection.mutable.ListBuffer.empty[Task]
-
-    if (cursor.getCount() > 0) {
-      cursor.moveToFirst()
-      while (!cursor.isAfterLast()) {
-        lst += Task.fromCursor(cursor)
-        cursor.moveToNext()
-      }
-
-    }
-    cursor.close()
-    lst.toList
-  }
+  def allTasks = taskTable.all
 
   def registerCheckBoxStateChangeHandler(f: (CompoundButton, Boolean) => Unit) = checkBoxStateChangeHandler = Some(f)
   def registerTaskClickHandler(f: (Int) => Unit) = taskClickHandler = Some(f)
@@ -218,10 +205,8 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
   private def ordering = " order by due_date asc, priority desc"
 
   private def filter(query: String) = {
-    setFilterQueryProvider((_:CharSequence) =>
-      taskTable.db.rawQuery(query, null))
-    getFilter().filter("")
-    Tasks.refresh(context)
+    val cursor = DBHelper.getDB(context).rawQuery(query, null)
+    changeCursor(cursor)
   }
 
 }

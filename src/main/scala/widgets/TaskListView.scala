@@ -18,12 +18,22 @@ import android.content.DialogInterface
 import android.content.DialogInterface.OnClickListener
 import com.android.todoapp.Implicits._
 import com.android.todoapp.Utils._
+import android.database.sqlite.SQLiteDatabase
 
-class TaskListView(context: Context, listView: ListView) {
-  val adapter = Tasks.adapter(context)
+object TaskListView {
+  var taskListView: Option[TaskListView] = None
+  def apply(context: Context, listView: ListView, adapter: TaskAdapter): TaskListView = taskListView match {
+    case Some(v) => v
+    case None => {
+      taskListView = Some(new TaskListView(context, listView, adapter))
+      taskListView.get
+    }
+  }
+}
 
+class TaskListView(context: Context, listView: ListView, adapter: TaskAdapter) {
   def init() = {
-    adapter.showIncompleteTasks()
+    listView.setAdapter(adapter)
 
     adapter.registerTaskClickHandler((taskCursorPosition: Int) =>  {
       val intent = new Intent(context, classOf[TaskEditActivity])
@@ -31,7 +41,8 @@ class TaskListView(context: Context, listView: ListView) {
       context.startActivity(intent)
     })
 
-    listView.setAdapter(adapter)
+
+    adapter.showIncompleteTasks()
   }
 
   init()

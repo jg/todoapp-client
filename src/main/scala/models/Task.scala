@@ -5,9 +5,10 @@ import android.content.Context
 import scala.collection.mutable.LinkedHashMap
 import android.database.Cursor
 import scala.collection.Map
+import android.database.sqlite.SQLiteDatabase
 
 
-object Task {
+object Task extends DBModel {
   val fieldMap = LinkedHashMap(
     "_id"          -> "integer primary key",
     "title"        -> "string",
@@ -16,10 +17,10 @@ object Task {
     "created_at"   -> "string",
     "due_date"     -> "string",
     "due_time"     -> "integer",
-    "task_list"    -> "string",
     "priority"     -> "string",
     "repeat"       -> "string",
-    "postpone"     -> "string"
+    "postpone"     -> "string",
+    "task_list_id" -> "integer"
   )
 
   def columnIndex(fieldName: String): Int = {
@@ -31,39 +32,63 @@ object Task {
     else throw new Exception("Field name " + fieldName + " not found in the fieldmap")
   }
 
-  def toSQL() = fieldMap.map((x) => x._1 + " " + x._2).mkString(", ")
+  def toSQL() = {
+    val fields = fieldMap.map((x) => x._1 + " " + x._2).mkString(", ")
+    fields + ", FOREIGN KEY(task_list_id) REFERENCES task_list(id)"
+
+  }
+
+  def tableCreateStatement = "create table if not exists tasks (" + Task.toSQL() + ")"
+
+  def tableDropStatement = "drop table tasks"
 
   def fromDataList(lst: List[Data]): Task = {
     val title = lst.find(el => el.name == "title").get.value.get
     new Task(title)
   }
 
-  def deserialize(lst: Iterable[(String, Any)]): Task = (new Task("")).deserialize(lst)
+  def deserialize(lst: Iterable[(String, Any)])(implicit context: Context): Task = (new Task("")).deserialize(lst)
 
-  def fromCursor(cursor: Cursor): Task = (new Task("")).fromCursor(cursor)
+  def fromCursor(cursor: Cursor)(implicit context: Context): Task = (new Task("")).fromCursor(cursor)
 }
 
 class Task(var title: String) {
-  var id: Long                   = -1
+  var id: Long                      = -1
+  var task_list_id: Long            = 1
   var completed_at: Option[Date]    = None
   var created_at: Date              = Date.now
   var updated_at: Date              = Date.now
   var due_date: Option[Date]        = None
   var due_time: Option[Time]        = None
-  var task_list: String             = "master"
   var priority: Priority            = new Priority(Priority.Normal)
   var repeat: Option[RepeatPattern] = None
   var postpone: Option[Period]      = None
 
-  def fieldMap = Map(
+  def task_list(implicit context: Context) = TaskListTable().findById(task_list_id) match {
+    case Some(lst) => lst.name
+    case None => throw new Exception("TaskList with id " + task_list_id + " not found")
+  }
+
+  def setTaskList(name: String)(implicit context: Context) = {
+    task_list_id = TaskListTable().findByName(name) match {
+      case Some(taskList) => taskList.id
+      case None => {
+        val taskList = TaskList(name)
+        TaskListTable().insert(taskList)
+        taskList.id
+      }
+    }
+  }
+
+  def fieldMap(implicit context: Context) = Map(
+    ("_id", id),
     ("title", title),
-    ("id", id),
     ("completed_at", completed_at),
     ("created_at", created_at),
     ("updated_at", updated_at),
     ("due_date", due_date),
     ("due_time", due_time),
-    ("task_list", task_list),
+    ("task_list_id", task_list_id),
     ("priority", priority),
     ("repeat", repeat),
     ("postpone", postpone)
@@ -77,7 +102,7 @@ class Task(var title: String) {
     var values = new ContentValues()
 
     values.put("title", title)
-    values.put("task_list", task_list)
+    values.put("task_list_id", task_list_id: java.lang.Long)
     values.put("created_at", created_at.completeFormat)
     values.put("updated_at", updated_at.completeFormat)
     values.put("priority", priority.toString)
@@ -111,12 +136,12 @@ class Task(var title: String) {
     values
   }
 
-  def save(context: Context) {
+  def save()(implicit context: Context) {
     updated_at = Date.now
     if ( savedP() )
-      Tasks.update(context, this)
+      Tasks.update(this)
     else
-      Tasks.add(context, this)
+      Tasks.add(this)
   }
 
   def savedP(): Boolean = id != -1
@@ -124,7 +149,7 @@ class Task(var title: String) {
   def isCompleted = !completed_at.isEmpty
 
   // TODO: extract this into separate class
-  def toJSON(expectedParams: List[String]) = {
+  def toJSON(expectedParams: List[String])(implicit context: Context) = {
     def jsonObject(name: String, contents: String) = "{\"" + name + "\": {" + contents + "}" + "}"
 
     def isExpected(param: String): Boolean = !expectedParams.find(_ == param).isEmpty
@@ -156,12 +181,34 @@ class Task(var title: String) {
     jsonObject("task", keyValues.mkString(","))
   }
 
-  def deserialize(lst: Iterable[(String, Any)]): Task = {
+  // used both in JSON and DB deserialization
+  def deserialize(lst: Iterable[(String, Any)])(implicit context: Context): Task = {
     lst.foreach(el => {
       el match {
         case ("id", value: String) => id = value.toLong
         case ("id", value: Long) => id = value
         case ("id", value: Int) => id = value
+        case ("task_list_id", value: Long) => {
+
+          TaskListTable().findById(value) match {
+            case Some(taskList) => {
+              task_list_id = value
+            }
+            case None => {
+              TaskListTable().findByName("Inbox").get.id
+            }
+          }
+        }
+        case ("task_list", name: String) => {
+          task_list_id = TaskListTable().findByName(name) match {
+            case Some(taskList) => taskList.id
+            case None => {
+              val taskList = TaskList(name)
+              TaskListTable().insert(taskList)
+              taskList.id
+            }
+          }
+        }
         case ("updated_at", value: String) => updated_at = Date(value)
         case ("created_at", value: String) => created_at = Date(value)
         case ("completed_at", value: String) => completed_at = Some(Date(value))
@@ -170,7 +217,6 @@ class Task(var title: String) {
         case ("due_date", value: String) => due_date = Some(Date(value))
         case ("repeat", value: String) => repeat = RepeatPattern(value)
         case ("priority", value: String) => priority = Priority(value)
-        case ("task_list", value: String) => task_list = value
         case ("title", value: String) => title = value
         case ("postpone", value: String) => postpone = Period(value)
       }
@@ -178,8 +224,17 @@ class Task(var title: String) {
     this
   }
 
-  def fromCursor(cursor: Cursor): Task = {
-    def i(s: String) = Task.columnIndex(s)
+  def columnIndex(fieldName: String)(implicit context: Context): Int = {
+    val index = Task.fieldMap.toIndexedSeq.indexWhere(
+      (x: Tuple2[String,Any]) => x._1 == fieldName
+    )
+
+    if (index != -1) index
+    else throw new Exception("Field name " + fieldName + " not found in the fieldmap")
+  }
+
+  def fromCursor(cursor: Cursor)(implicit context: Context): Task = {
+    def i(s: String) = columnIndex(s)
 
     def isPresent(field: String) = !cursor.isNull(i(field))
 
@@ -194,7 +249,7 @@ class Task(var title: String) {
     if (isPresent("due_date"))     lst += (("due_date", cursor.getString(i("due_date"))))
     if (isPresent("due_time"))     lst += (("due_time", cursor.getInt(i("due_time"))))
     if (isPresent("repeat"))       lst += (("repeat", cursor.getString(i("repeat"))))
-    if (isPresent("task_list"))    lst += (("task_list", cursor.getString(i("task_list"))))
+    if (isPresent("task_list_id"))    lst += (("task_list_id", cursor.getLong(i("task_list_id"))))
     if (isPresent("postpone"))     lst += (("postpone", cursor.getString(i("postpone"))))
 
     // Log.i(lst.toList.mkString(", "))

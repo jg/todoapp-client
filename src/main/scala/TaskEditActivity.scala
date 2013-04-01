@@ -9,12 +9,12 @@ import android.widget.Toast
 import android.support.v4.app.FragmentActivity
 import android.view.View.OnFocusChangeListener
 import android.content.Intent
+import android.content.Context
 
 class TaskEditActivity extends FragmentActivity with ActivityExtensions {
   var task: Task = _
 
   val NotSet = "Not set"
-  val taskTable = TaskTable(this)
 
   lazy val dateSelectionDialog = {
     val listener = (selection: Option[Date]) => selection match {
@@ -32,8 +32,6 @@ class TaskEditActivity extends FragmentActivity with ActivityExtensions {
   }
 
   override def onCreate(bundle: Bundle) {
-    taskTable.open()
-
     super.onCreate(bundle)
     setContentView(R.layout.task_edit)
 
@@ -45,8 +43,7 @@ class TaskEditActivity extends FragmentActivity with ActivityExtensions {
   def getTaskFromIntent() = {
     val intent = getIntent()
     val taskPosition = intent.getIntExtra("taskPosition", -1)
-    val adapter = Tasks.adapter(this)
-    adapter.getTask(taskPosition)
+    Tasks.adapter.getTask(taskPosition)
   }
 
   def setDueDateButtonText(text: String) = findButton(R.id.due_date).setText(text)
@@ -62,7 +59,7 @@ class TaskEditActivity extends FragmentActivity with ActivityExtensions {
       val spinner = findSpinner(R.id.task_list)
       val lists = TaskListRestrictions.taskLists
       spinner.fromArray(lists.toArray.map(_.toString))
-      spinner.setSelection(lists.indexOf(TaskListRestrictions.current))
+      spinner.setSelection(lists.indexOf(task.task_list))
     }
 
     def populateTaskPrioritySpinner() = {
@@ -99,7 +96,10 @@ class TaskEditActivity extends FragmentActivity with ActivityExtensions {
 
       def taskTitle = findEditText(R.id.task_title).getText.toString()
 
-      def taskList = findSpinner(R.id.task_list).value
+      def taskListId: Long = TaskListTable().findByName(findSpinner(R.id.task_list).value) match {
+        case Some(taskList) => taskList.id
+        case None => TaskListTable().findByName("Inbox").get.id
+      }
 
       def taskRepeat: String = findSpinner(R.id.task_repeat).value
 
@@ -112,11 +112,11 @@ class TaskEditActivity extends FragmentActivity with ActivityExtensions {
       findButton(R.id.save).setOnClickListener((v: View) => {
         task.priority = taskPriority
         task.title = taskTitle
-        task.task_list = taskList
+        task.task_list_id = taskListId
         task.repeat = RepeatPattern(taskRepeat)
         task.due_date = taskDueDate
         task.due_time = taskDueTime
-        task.save(this)
+        task.save()
         pr("Task updated")
 
         val intent = new Intent(this, classOf[MainActivity])

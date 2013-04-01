@@ -18,16 +18,16 @@ import com.android.todoapp.Utils._
 import java.lang.CharSequence
 import java.net.UnknownHostException
 import java.util.{Timer, TimerTask}
+import android.database.sqlite.SQLiteDatabase
+import android.database.sqlite.SQLiteOpenHelper
 
 class MainActivity extends FragmentActivity with TypedActivity with ActivityExtensions {
-  implicit val context: Context    = this
-  implicit val taskTable           = TaskTable(this)
-
-  var taskList: TaskListView       = _
   var newTaskForm: NewTaskForm     = _
   var commandButton: CommandButton = _
   var timer: Timer                 = new Timer()
   var handler: Handler             = _
+  var taskList: TaskListView = null
+  var adapter: TaskAdapter = null
 
   lazy val postponePeriodSelectionDialog: PickerDialog = {
     val choices = List(TenSeconds, Hour, FourHours, SixHours, Day).map(_.toString).toArray[String]
@@ -35,7 +35,7 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
       val items = taskList.checkedItems
       items.foreach((task: Task) => {
         task.setPostpone(Period(selection).get)
-        task.save(context)
+        task.save()
       })
       taskList.unCheckAllItems()
       Util.pr(context, "Postponed " + items.size + " tasks")
@@ -44,42 +44,90 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
   }
 
   override def onCreate(bundle: Bundle) {
-    taskTable.open()
-
     super.onCreate(bundle)
     setContentView(R.layout.main)
+    val container = findViewById(R.id.container)
+    val app: App = getApplicationContext().asInstanceOf[App]
+    handler = new Handler()
+
+    adapter = new TaskAdapter(this, DBHelper.getDB(this).rawQuery("select * from tasks", null))
 
     // Init widgets
-    taskList = new TaskListView(context, findViewById(R.id.taskList).asInstanceOf[ListView])
 
-    val container = findViewById(R.id.container)
-    new Tabs(this, container)
+    // CurrentTaskListSpinner
+    val taskListChangeListener = (choice: TaskListRestriction) => {
+      choice match {
+        case FilterToday => adapter.showTasksDueToday()
+        case FilterThisWeek => adapter.showTasksDueThisWeek()
+        case TaskList(list) => adapter.showTasksInList(list)
+        case _ => ()
+      }
+      refresh()
+    }
+    new CurrentTaskListSpinner(findViewById(R.id.current_task_list).asInstanceOf[Spinner], taskListChangeListener)
 
-    val currentTaskListSpinner = findViewById(R.id.current_task_list).asInstanceOf[CurrentTaskListSpinner]
-    newTaskForm = new NewTaskForm(this, container, getResources(), getSupportFragmentManager(), currentTaskListSpinner)
-    commandButton = new CommandButton(context, container, taskList, R.id.commandButton)
+    // TaskListView
+    taskList = new TaskListView(this, findViewById(R.id.taskList).asInstanceOf[ListView], adapter)
 
-    val adapter = Tasks.adapter(context)
-    adapter.registerCheckBoxStateChangeHandler((buttonView: CompoundButton, isChecked: Boolean) =>
+    // Tabs
+    val tabListener = (tab: Tab) => {
+      tab match {
+        case incompleteTasksTab() => adapter.showIncompleteTasks()
+        case completedTasksTab() => adapter.showCompletedTasks()
+      }
+      refresh()
+    }
+    new Tabs(container, tabListener)
+
+    // NewTaskForm
+    newTaskForm = new NewTaskForm(container, getResources(), getSupportFragmentManager(), app.TaskListRestrictions.current)
+
+    // CommandButton
+    commandButton = new CommandButton(container, taskList, R.id.commandButton)
+    Tasks.adapter.registerCheckBoxStateChangeHandler((buttonView: CompoundButton, isChecked: Boolean) =>
       commandButton.init(R.id.commandButton))
 
-    // sync button
+    // SyncButton
     findButton(R.id.synchronizeButton).setOnClickListener((view: View) => synchronizeButtonHandler(view))
+  }
 
-    handler = new Handler()
+  def initCurrentTaskListSpinner() = {
+    val app: App = getApplicationContext().asInstanceOf[App]
+    val taskListSpinner = findViewById(R.id.current_task_list).asInstanceOf[Spinner]
+    val TaskListRestrictions = app.TaskListRestrictions
+
+    taskListSpinner.fromArray(TaskListRestrictions.all.map(_.toString).toArray) // Initialize spinner values
+
+    taskListSpinner.setOnItemSelectedListener((parent: AdapterView[_], view: View, pos: Int, id: Long) => {
+      val choice = TaskListRestrictions.at(pos)
+      TaskListRestrictions.setCurrent(choice)
+
+      choice match {
+        case FilterToday => adapter.showTasksDueToday()
+        case FilterThisWeek => adapter.showTasksDueThisWeek()
+        case TaskList(list) => adapter.showTasksInList(list)
+        case _ => ()
+      }
+      refresh()
+    })
+  }
+
+  def refresh() = {
+    adapter.notifyDataSetChanged()
+    // taskList.setAdapter(adapter)
   }
 
   def setupTimer() = {
     timer = new Timer()
-    val timerTask = new RestoreRepeatingPostponedTasks(this, Tasks.adapter(this))
+    val timerTask = new RestoreRepeatingPostponedTasks(this, Tasks.adapter)
     timer.schedule(timerTask, 1000, 1000)
   }
+
 
   class RestoreRepeatingPostponedTasks(context: Context, taskAdapter: TaskAdapter) extends TimerTask {
     def run() = {
       handler.post(new Runnable() {
         override def run() {
-          implicit val c = context
           Tasks.restorePostponed()
           Tasks.restoreRepeating()
         }
@@ -99,14 +147,10 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
     timer.cancel()
   }
 
-  override def onStart() = {
-    super.onStart()
-    taskTable.open()
-  }
-
   override def onStop() = {
     super.onStop()
     timer.cancel()
+    DBHelper.getDB(this).close()
   }
 
   def initSyncButton(listView: ListView, id: Int) = findButton(id).setOnClickListener(onClickListener(synchronizeButtonHandler))
@@ -140,7 +184,7 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
   override def onOptionsItemSelected(item: MenuItem): Boolean = {
     item.getItemId() match {
       case R.id.lists => {
-        Util.pr(this, "Manage lists")
+        startActivity(new Intent(this, classOf[TaskListActivity]))
         true
       }
       case R.id.postpone => {
