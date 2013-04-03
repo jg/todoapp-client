@@ -20,7 +20,7 @@ import com.android.todoapp.Implicits._
 import com.android.todoapp.Utils._
 import android.database.sqlite.SQLiteDatabase
 
-class CommandButton(view: View, taskList: TaskListView, id: Int)(implicit context: Context, db: SQLiteDatabase) {
+class CommandButton(view: View, taskList: TaskListView, id: Int)(implicit context: Context) {
   init(id)
 
   def init(id: Int) = {
