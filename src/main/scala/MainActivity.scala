@@ -50,7 +50,14 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
     val app: App = getApplicationContext().asInstanceOf[App]
     handler = new Handler()
 
+    // Init TaskAdapter
     adapter = new TaskAdapter(this, DBHelper.getDB(this).rawQuery("select * from tasks", null))
+
+    adapter.registerTaskClickHandler((taskCursorPosition: Int) =>  {
+      val intent = new Intent(context, classOf[TaskEditActivity])
+      intent.putExtra("taskPosition", taskCursorPosition);
+      context.startActivity(intent)
+    })
 
     // Init widgets
 

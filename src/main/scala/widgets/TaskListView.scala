@@ -32,20 +32,7 @@ object TaskListView {
 }
 
 class TaskListView(context: Context, listView: ListView, adapter: TaskAdapter) {
-  def init() = {
-    listView.setAdapter(adapter)
-
-    adapter.registerTaskClickHandler((taskCursorPosition: Int) =>  {
-      val intent = new Intent(context, classOf[TaskEditActivity])
-      intent.putExtra("taskPosition", taskCursorPosition);
-      context.startActivity(intent)
-    })
-
-
-    adapter.showIncompleteTasks()
-  }
-
-  init()
+  listView.setAdapter(adapter)
 
   def unCheckAllItems() = {
     val views = Range(0, listView.getChildCount()).map(listView.getChildAt(_))
