@@ -110,6 +110,7 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
 
   override def bindView(view: View, context: Context, cursor: Cursor) {
     val task = Task.fromCursor(cursor)
+    val taskTitle = view.findViewById(R.id.taskTitle).asInstanceOf[TextView]
 
     def setTaskPriority(): Unit = {
       val v = view.findViewById(R.id.taskPriority)
@@ -162,32 +163,40 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
 
     def setTaskTitle() = taskTitle.setText(task.title)
 
-    def taskTitle = view.findViewById(R.id.taskTitle).asInstanceOf[TextView]
+    def setTaskDueDate() = {
+      if (task.isCompleted)
+        setDate(task.completed_at)
+      else {
+        if (task.postpone.isDefined) {
+          val hourDifference =
+                task.updated_at.addPeriod(task.postpone.get).hourDifference(Date.now)
+          if (hourDifference != 0) {
+            dateView.setText("postponed for " + hourDifference.toString + " hours")
+          } else {
+            val minuteDifference =
+              task.updated_at.addPeriod(task.postpone.get).minuteDifference(Date.now)
+            dateView.setText("postponed for " + minuteDifference.toString + " minutes")
+          }
+        } else {
+          dateView.setText("")
+        }
+      }
+    }
+
+    def setTaskPaintFlags() = {
+      if (task.isCompleted)
+        taskTitle.setPaintFlags(taskTitle.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG)
+      else
+        taskTitle.setPaintFlags(taskTitle.getPaintFlags() & (~ Paint.STRIKE_THRU_TEXT_FLAG))
+    }
 
     setTaskTitle()
     setTaskPriority()
     setTaskList()
     setTaskClickListener()
     setTaskCheckboxToggleListener()
-
-    if (task.isCompleted) {
-      taskTitle.setPaintFlags(taskTitle.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG)
-      setDate(task.completed_at)
-    } else if (task.due_date.isDefined) {
-      setDate(task.due_date)
-      taskTitle.setPaintFlags(0)
-    } else if (task.postpone.isDefined) {
-      val hourDifference =
-            task.updated_at.addPeriod(task.postpone.get).hourDifference(Date.now)
-      if (hourDifference != 0)
-        dateView.setText("postponed for " + hourDifference.toString + " hours")
-      else {
-        val minuteDifference =
-          task.updated_at.addPeriod(task.postpone.get).minuteDifference(Date.now)
-        dateView.setText("postponed for " + minuteDifference.toString + " minutes")
-      }
-    } else
-      dateView.setText("")
+    setTaskDueDate()
+    setTaskPaintFlags()
   }
 
   override def newView(context: Context, cursor: Cursor, parent: ViewGroup): View = {
