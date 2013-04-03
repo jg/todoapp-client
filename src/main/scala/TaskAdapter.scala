@@ -177,6 +177,8 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
               task.updated_at.addPeriod(task.postpone.get).minuteDifference(Date.now)
             dateView.setText("postponed for " + minuteDifference.toString + " minutes")
           }
+        } else if (task.due_date.isDefined) {
+          setDate(task.due_date)
         } else {
           dateView.setText("")
         }
