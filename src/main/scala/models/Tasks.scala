@@ -14,21 +14,6 @@ object Tasks {
     TaskAdapter(c, TaskTable().cursor)
   }
 
-  def add(task: Task)(implicit c: Context) = {
-    task.id = TaskTable().insert(task)
-    refresh
-  }
-
-  def update(task: Task)(implicit c: Context) = {
-    TaskTable().update(task)
-    refresh
-  }
-
-  def refresh(implicit c: Context)  {
-    adapter.notifyDataSetChanged()
-    adapter.getFilter().filter("")
-  }
-
   def findTask(task: Task)(implicit context: Context): Option[Task] = Tasks.adapter.allTasks.find(_.created_at == task.created_at)
 
   def getTasks(tasks: Collection)(implicit context: Context) = {

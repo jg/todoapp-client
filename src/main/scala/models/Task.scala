@@ -139,9 +139,9 @@ class Task(var title: String) {
   def save()(implicit context: Context) {
     updated_at = Date.now
     if ( savedP() )
-      Tasks.update(this)
+      TaskTable().update(this)
     else
-      Tasks.add(this)
+      id = TaskTable().insert(this)
   }
 
   def savedP(): Boolean = id != -1

@@ -99,7 +99,7 @@ class NewTaskForm(view: View, resources: Resources, fragmentManager: FragmentMan
         task.repeat   = RepeatPattern(repeatSelectionDialog.selection.get)
 
       Log.i(task.toJSON(List()))
-      Tasks.add(task)
+      TaskTable().insert(task)
       Util.pr(context, "New Task Added")
     }
 

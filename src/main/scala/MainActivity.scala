@@ -26,8 +26,8 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
   var commandButton: CommandButton = _
   var timer: Timer                 = new Timer()
   var handler: Handler             = _
-  var taskList: TaskListView = null
-  var adapter: TaskAdapter = null
+  var taskList: TaskListView       = null
+  var adapter: TaskAdapter         = null
 
   lazy val postponePeriodSelectionDialog: PickerDialog = {
     val choices = List(TenSeconds, Hour, FourHours, SixHours, Day).map(_.toString).toArray[String]
@@ -90,7 +90,7 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
     newTaskForm = new NewTaskForm(container, getResources(), getSupportFragmentManager(), app.TaskListRestrictions.current)
 
     // CommandButton
-    commandButton = new CommandButton(container, taskList, R.id.commandButton)
+    commandButton = new CommandButton(container, taskList, R.id.commandButton, refresh)
     adapter.registerCheckBoxStateChangeHandler((buttonView: CompoundButton, isChecked: Boolean) =>
       commandButton.init(R.id.commandButton))
 
@@ -109,13 +109,13 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
     timer.schedule(timerTask, 1000, 1000)
   }
 
-
   class RestoreRepeatingPostponedTasks(context: Context, taskAdapter: TaskAdapter) extends TimerTask {
     def run() = {
       handler.post(new Runnable() {
         override def run() {
           Tasks.restorePostponed()
           Tasks.restoreRepeating()
+          refresh()
         }
       })
     }
