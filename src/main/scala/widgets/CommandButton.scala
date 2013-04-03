@@ -58,6 +58,8 @@ class CommandButton(view: View, taskList: TaskListView, id: Int, refreshTaskList
 
     taskList.unCheckAllItems()
     init(R.id.commandButton)
+
+    refreshTaskList()
   }
 
   private def addNewTaskButtonHandler(clickedView: View) = {
