@@ -51,8 +51,6 @@ class CommandButton(view: View, taskList: TaskListView, id: Int, refreshTaskList
       task.save()
     })
 
-    refreshTaskList()
-
     if (items.length == 1)
       Util.pr(context, "task marked as completed")
     else
