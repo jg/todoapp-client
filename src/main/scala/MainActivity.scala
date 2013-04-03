@@ -91,7 +91,7 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
 
     // CommandButton
     commandButton = new CommandButton(container, taskList, R.id.commandButton)
-    Tasks.adapter.registerCheckBoxStateChangeHandler((buttonView: CompoundButton, isChecked: Boolean) =>
+    adapter.registerCheckBoxStateChangeHandler((buttonView: CompoundButton, isChecked: Boolean) =>
       commandButton.init(R.id.commandButton))
 
     // SyncButton
