@@ -57,8 +57,8 @@ class TaskEditActivity extends FragmentActivity with ActivityExtensions {
 
     def populateTaskListSpinner() = {
       val spinner = findSpinner(R.id.task_list)
-      val lists = TaskListRestrictions.taskLists
-      spinner.fromArray(lists.toArray.map(_.toString))
+      val lists = TaskListRestrictions.taskLists.toArray.map(_.toString)
+      spinner.fromArray(lists)
       spinner.setSelection(lists.indexOf(task.task_list))
     }
 
@@ -124,32 +124,35 @@ class TaskEditActivity extends FragmentActivity with ActivityExtensions {
       })
     }
 
-    populateTaskPrioritySpinner()
-    populateTaskListSpinner()
-    populateTaskRepeatSpinner()
-    for (due_date <- task.due_date) {
-      dateSelectionDialog.setDate(due_date)
+    def populateForm() = {
+      populateTaskPrioritySpinner()
+      populateTaskListSpinner()
+      populateTaskRepeatSpinner()
+      for (due_date <- task.due_date) {
+        dateSelectionDialog.setDate(due_date)
+      }
+      for (time <- task.due_time) {
+        timeSelectionDialog.setInitialTime(time)
+      }
+
+      setTaskTitle()
+
+      setDueDateClickHandler()
+
+      setDueDateButtonText(
+        if (task.due_date.isDefined)
+          task.due_date.get.dateFormat
+        else "Not Set")
+
+      setDueTimeButtonText(
+        if (task.due_time.isDefined)
+          task.due_time.get.toString
+        else "Not Set")
+
+      setDueTimeClickHandler()
     }
-    for (time <- task.due_time) {
-      timeSelectionDialog.setInitialTime(time)
-    }
 
-    setTaskTitle()
-
-    setDueDateClickHandler()
-
-    setDueDateButtonText(
-      if (task.due_date.isDefined)
-        task.due_date.get.dateFormat
-      else "Not Set")
-
-    setDueTimeButtonText(
-      if (task.due_time.isDefined)
-        task.due_time.get.toString
-      else "Not Set")
-
-    setDueTimeClickHandler()
-
+    populateForm()
     setSaveButtonHandler()
   }
 
