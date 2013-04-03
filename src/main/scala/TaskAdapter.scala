@@ -207,6 +207,7 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
   private def filter(query: String) = {
     val cursor = DBHelper.getDB(context).rawQuery(query, null)
     changeCursor(cursor)
+    notifyDataSetChanged()
   }
 
 }

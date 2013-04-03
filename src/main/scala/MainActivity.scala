@@ -90,7 +90,7 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
     newTaskForm = new NewTaskForm(container, getResources(), getSupportFragmentManager(), app.TaskListRestrictions.current)
 
     // CommandButton
-    commandButton = new CommandButton(container, taskList, R.id.commandButton, refresh)
+    commandButton = new CommandButton(container, taskList, R.id.commandButton, () => refresh())
     adapter.registerCheckBoxStateChangeHandler((buttonView: CompoundButton, isChecked: Boolean) =>
       commandButton.init(R.id.commandButton))
 
@@ -98,10 +98,7 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
     findButton(R.id.synchronizeButton).setOnClickListener((view: View) => synchronizeButtonHandler(view))
   }
 
-  def refresh() = {
-    adapter.notifyDataSetChanged()
-    // taskList.setAdapter(adapter)
-  }
+  def refresh() = adapter.filterWithCurrentQuery()
 
   def setupTimer() = {
     timer = new Timer()

@@ -31,11 +31,6 @@ class CommandButton(view: View, taskList: TaskListView, id: Int, refreshTaskList
     }
   }
 
-  private def markTask(task: Task) {
-    task.markAsCompleted()
-    task.save()
-  }
-
   private def initAddNewTaskButton(id: Int) = {
     val b = view.findViewById(id).asInstanceOf[Button]
 
@@ -51,7 +46,12 @@ class CommandButton(view: View, taskList: TaskListView, id: Int, refreshTaskList
   }
 
   private def markTaskAsCompleteHandler(clickedView: View) {
-    val items = taskList.checkedItems.map(markTask( _))
+    val items = taskList.checkedItems.map((task: Task) => {
+      task.markAsCompleted()
+      task.save()
+    })
+
+    refreshTaskList()
 
     if (items.length == 1)
       Util.pr(context, "task marked as completed")
@@ -60,7 +60,6 @@ class CommandButton(view: View, taskList: TaskListView, id: Int, refreshTaskList
 
     taskList.unCheckAllItems()
     init(R.id.commandButton)
-    refreshTaskList()
   }
 
   private def addNewTaskButtonHandler(clickedView: View) = {

@@ -49,6 +49,4 @@ class TaskListView(context: Context, listView: ListView, adapter: TaskAdapter) {
       .filter(lv.getChildAt(_).asInstanceOf[TaskLayout].isChecked())
       .map(adapter.getTask(_))
   }
-
-  def setAdapter(adapter: TaskAdapter) = listView.setAdapter(adapter)
 }
