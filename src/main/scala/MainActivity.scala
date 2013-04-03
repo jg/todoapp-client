@@ -98,27 +98,6 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
     findButton(R.id.synchronizeButton).setOnClickListener((view: View) => synchronizeButtonHandler(view))
   }
 
-  def initCurrentTaskListSpinner() = {
-    val app: App = getApplicationContext().asInstanceOf[App]
-    val taskListSpinner = findViewById(R.id.current_task_list).asInstanceOf[Spinner]
-    val TaskListRestrictions = app.TaskListRestrictions
-
-    taskListSpinner.fromArray(TaskListRestrictions.all.map(_.toString).toArray) // Initialize spinner values
-
-    taskListSpinner.setOnItemSelectedListener((parent: AdapterView[_], view: View, pos: Int, id: Long) => {
-      val choice = TaskListRestrictions.at(pos)
-      TaskListRestrictions.setCurrent(choice)
-
-      choice match {
-        case FilterToday => adapter.showTasksDueToday()
-        case FilterThisWeek => adapter.showTasksDueThisWeek()
-        case TaskList(list) => adapter.showTasksInList(list)
-        case _ => ()
-      }
-      refresh()
-    })
-  }
-
   def refresh() = {
     adapter.notifyDataSetChanged()
     // taskList.setAdapter(adapter)
