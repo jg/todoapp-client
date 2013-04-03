@@ -64,7 +64,7 @@ class Task(var title: String) {
   var repeat: Option[RepeatPattern] = None
   var postpone: Option[Period]      = None
 
-  def task_list(implicit context: Context) = TaskListTable().findById(task_list_id) match {
+  def task_list(implicit context: Context): String = TaskListTable().findById(task_list_id) match {
     case Some(lst) => lst.name
     case None => throw new Exception("TaskList with id " + task_list_id + " not found")
   }
