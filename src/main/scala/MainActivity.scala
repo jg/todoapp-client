@@ -103,7 +103,7 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
   def setupTimer() = {
     timer = new Timer()
     val timerTask = new RestoreRepeatingPostponedTasks(this, Tasks.adapter)
-    timer.schedule(timerTask, 1000, 1000)
+    timer.schedule(timerTask, 1000, 5000)
   }
 
   class RestoreRepeatingPostponedTasks(context: Context, taskAdapter: TaskAdapter) extends TimerTask {
