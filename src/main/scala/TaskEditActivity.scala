@@ -50,14 +50,12 @@ class TaskEditActivity extends FragmentActivity with ActivityExtensions {
 
   def setDueTimeButtonText(text: String) = findButton(R.id.due_time).setText(text)
 
-  def TaskListRestrictions = app.TaskListRestrictions
-
   def initTaskEditForm() = {
     def setTaskTitle() = findEditText(R.id.task_title).setText(task.title)
 
     def populateTaskListSpinner() = {
       val spinner = findSpinner(R.id.task_list)
-      val lists = TaskListRestrictions.taskLists.toArray.map(_.toString)
+      val lists = TaskLists.all.toArray.map(_.toString)
       spinner.fromArray(lists)
       spinner.setSelection(lists.indexOf(task.task_list))
     }

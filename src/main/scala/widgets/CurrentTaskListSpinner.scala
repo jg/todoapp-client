@@ -11,12 +11,11 @@ import android.database.sqlite.SQLiteDatabase
 
 class CurrentTaskListSpinner(spinner: Spinner, listener: (TaskListRestriction) => Any)(implicit context: Context) {
   val app = context.getApplicationContext().asInstanceOf[App]
-  val TaskListRestrictions = app.TaskListRestrictions
+  lazy val taskLists = TaskLists.all
 
-  spinner.fromArray(TaskListRestrictions.all.map(_.toString).toArray) // Initialize spinner values
-
+  spinner.fromArray(taskLists.map(_.toString).toArray)
   spinner.setOnItemSelectedListener((parent: AdapterView[_], view: View, pos: Int, id: Long) => {
-    val choice = TaskListRestrictions.at(pos)
+    val choice = taskLists(pos)
     TaskListRestrictions.setCurrent(choice)
     listener(choice)
   })

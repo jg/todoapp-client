@@ -47,7 +47,6 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
     super.onCreate(bundle)
     setContentView(R.layout.main)
     val container = findViewById(R.id.container)
-    val app: App = getApplicationContext().asInstanceOf[App]
     handler = new Handler()
 
     // Init TaskAdapter
@@ -87,7 +86,7 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
     new Tabs(container, tabListener)
 
     // NewTaskForm
-    newTaskForm = new NewTaskForm(container, getResources(), getSupportFragmentManager(), app.TaskListRestrictions.current)
+    newTaskForm = new NewTaskForm(container, getResources(), getSupportFragmentManager(), TaskListRestrictions.current)
 
     // CommandButton
     commandButton = new CommandButton(container, taskList, R.id.commandButton, () => refresh())

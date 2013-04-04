@@ -16,7 +16,6 @@ import android.os.Handler
 class TaskListAdapter(context: Context, cursor: Cursor) extends CursorAdapter(context, cursor, true) {
   implicit val c: Context = context
   lazy val taskListTable = new TaskListTable(context)
-  lazy val app = context.asInstanceOf[Activity].getApplication().asInstanceOf[App]
 
   override def bindView(view: View, context: Context, cursor: Cursor) {
     val taskList = TaskList.fromCursor(cursor)
@@ -26,7 +25,7 @@ class TaskListAdapter(context: Context, cursor: Cursor) extends CursorAdapter(co
 
     taskListName.setText(taskList.name + " " + "(" + taskCount.toString + ")")
     deleteIcon.setOnClickListener((v: View) => {
-      if (app.TaskListRestrictions.defaultTaskLists.find(_.toString == taskList.name).isDefined) {
+      if (TaskList.defaultTaskLists.find(_.toString == taskList.name).isDefined) {
         Util.pr(context, "Can't remove default task list")
       } else {
         // move all tasks from tasklist to Inbox
