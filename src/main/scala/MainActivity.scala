@@ -21,7 +21,7 @@ import java.util.{Timer, TimerTask}
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 
-class MainActivity extends FragmentActivity with TypedActivity with ActivityExtensions {
+class MainActivity extends FragmentActivity with TypedActivity with ActivityExtensions with Refreshable {
   var newTaskForm: NewTaskForm     = _
   var commandButton: CommandButton = _
   var timer: Timer                 = new Timer()
@@ -29,6 +29,7 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
   var taskList: TaskListView       = null
   var adapter: TaskAdapter         = null
   lazy val currentTaskListSpinner = new CurrentTaskListSpinner(findViewById(R.id.current_task_list).asInstanceOf[Spinner], taskListChangeListener)
+  implicit lazy val c: Activity with Refreshable = this
 
   lazy val postponePeriodSelectionDialog: PickerDialog = {
     val choices = List(TenSeconds, Hour, FourHours, SixHours, Day).map(_.toString).toArray[String]
@@ -185,4 +186,5 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
       }
     }
   }
+
 }

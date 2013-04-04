@@ -20,7 +20,7 @@ import android.content.DialogInterface.OnClickListener
 import com.android.todoapp.Implicits._
 import com.android.todoapp.Utils._
 
-class NewTaskForm(view: View, resources: Resources, fragmentManager: FragmentManager)(implicit context: Context) {
+class NewTaskForm(view: View, resources: Resources, fragmentManager: FragmentManager)(implicit context: Context with Refreshable) {
 
   // buttons
 
@@ -105,6 +105,7 @@ class NewTaskForm(view: View, resources: Resources, fragmentManager: FragmentMan
       Log.i(task.toJSON(List()))
       TaskTable().insert(task)
       Util.pr(context, "New Task Added")
+      context.refresh()
     }
 
     val title = findViewById(R.id.task_title_input).asInstanceOf[TextView]
