@@ -29,7 +29,7 @@ object TaskAdapter {
   }
 }
 
-class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(context, cursor, true) {
+class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(context, cursor, true) with Refreshable {
   val taskTable = new TaskTable()
   var checkBoxStateChangeHandler: Option[(CompoundButton, Boolean) => Unit] = None
   var taskClickHandler: Option[(Int) => Unit] = None
@@ -219,6 +219,10 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
     val cursor = DBHelper.getDB(context).rawQuery(query, null)
     changeCursor(cursor)
     notifyDataSetChanged()
+  }
+
+  def refresh() = {
+    filter(currentQuery.toSQL)
   }
 
 }
