@@ -64,17 +64,17 @@ class Task(var title: String) {
   var repeat: Option[RepeatPattern] = None
   var postpone: Option[Period]      = None
 
-  def task_list(implicit context: Context): String = TaskListTable().findById(task_list_id) match {
+  def task_list(implicit context: Context): String = TaskListTable(context).findById(task_list_id) match {
     case Some(lst) => lst.name
     case None => throw new Exception("TaskList with id " + task_list_id + " not found")
   }
 
   def setTaskList(name: String)(implicit context: Context) = {
-    task_list_id = TaskListTable().findByName(name) match {
+    task_list_id = TaskListTable(context).findByName(name) match {
       case Some(taskList) => taskList.id
       case None => {
         val taskList = TaskList(name)
-        TaskListTable().insert(taskList)
+        TaskListTable(context).insert(taskList)
         taskList.id
       }
     }
@@ -190,21 +190,21 @@ class Task(var title: String) {
         case ("id", value: Int) => id = value
         case ("task_list_id", value: Long) => {
 
-          TaskListTable().findById(value) match {
+          TaskListTable(context).findById(value) match {
             case Some(taskList) => {
               task_list_id = value
             }
             case None => {
-              TaskListTable().findByName("Inbox").get.id
+              TaskListTable(context).findByName("Inbox").get.id
             }
           }
         }
         case ("task_list", name: String) => {
-          task_list_id = TaskListTable().findByName(name) match {
+          task_list_id = TaskListTable(context).findByName(name) match {
             case Some(taskList) => taskList.id
             case None => {
               val taskList = TaskList(name)
-              TaskListTable().insert(taskList)
+              TaskListTable(context).insert(taskList)
               taskList.id
             }
           }

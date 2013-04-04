@@ -14,6 +14,12 @@ object Tasks {
     TaskAdapter(c, TaskTable().cursor)
   }
 
+  def all(implicit context: Context): Seq[Task] = table.all
+
+  private def table(implicit c: Context): TaskTable = TaskTable()
+
+  def inList(list: String)(implicit c: Context): Seq[Task] = all.filter((task: Task) => task.task_list == list)
+
   def findTask(task: Task)(implicit context: Context): Option[Task] = Tasks.adapter.allTasks.find(_.created_at == task.created_at)
 
   def getTasks(tasks: Collection)(implicit context: Context) = {

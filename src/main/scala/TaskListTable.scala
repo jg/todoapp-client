@@ -5,10 +5,10 @@ import android.content.Context
 import android.database.Cursor
 
 object TaskListTable {
-  def apply()(implicit context: Context) = new TaskListTable()
+  def apply(context: Context) = new TaskListTable(context)
 }
 
-class TaskListTable(implicit context: Context) {
+class TaskListTable(context: Context) {
   val TableName = "task_lists"
 
   def adapter: TaskAdapter = TaskAdapter(context, cursor)
@@ -17,7 +17,11 @@ class TaskListTable(implicit context: Context) {
 
   def cursor: Cursor = db.query(TableName, null, null, null, null, null, null)
 
-  def all: IndexedSeq[TaskList] = {
+  def remove(id: Long) = {
+    db.delete(TableName, "id = ?", Array[String](id.toString))
+  }
+
+  def all: Seq[TaskList] = {
     val lst = scala.collection.mutable.ListBuffer.empty[TaskList]
     val cursor = db.query(TableName, null, null, null, null, null, null)
 

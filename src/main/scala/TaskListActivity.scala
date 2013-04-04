@@ -25,10 +25,9 @@ class TaskListActivity extends FragmentActivity with TypedActivity with Activity
 
     setContentView(R.layout.task_list_activity)
 
-    val taskListTable = new TaskListTable()
+    val taskListTable = new TaskListTable(this)
     val list = findViewById(R.id.taskLists).asInstanceOf[ListView]
-    list.setAdapter(taskListTable.adapter)
-    //Log.i("taskLists count: " + taskListTable.adapter.getCount().toString)
+    list.setAdapter(new TaskListAdapter(this, taskListTable.cursor))
   }
 
   override def onStop() = {

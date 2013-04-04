@@ -1,7 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<ListView
+<RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/taskList"
     android:layout_width="fill_parent"
-    android:layout_height="wrap_content" />
+    android:layout_height="fill_parent" >
+
+  <TextView
+    android:id="@+id/taskListName"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:textSize="24sp"
+    xmlns:android="http://schemas.android.com/apk/res/android" />
+  <ImageButton
+      android:id="@+id/deleteTaskList"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:src="@drawable/delete_icon" />
+
+</RelativeLayout>

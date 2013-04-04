@@ -96,9 +96,9 @@ class TaskEditActivity extends FragmentActivity with ActivityExtensions {
 
       def taskTitle = findEditText(R.id.task_title).getText.toString()
 
-      def taskListId: Long = TaskListTable().findByName(findSpinner(R.id.task_list).value) match {
+      def taskListId: Long = TaskListTable(this).findByName(findSpinner(R.id.task_list).value) match {
         case Some(taskList) => taskList.id
-        case None => TaskListTable().findByName("Inbox").get.id
+        case None => TaskListTable(this).findByName("Inbox").get.id
       }
 
       def taskRepeat: String = findSpinner(R.id.task_repeat).value

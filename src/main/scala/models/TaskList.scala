@@ -70,4 +70,5 @@ case class TaskList(var name: String) extends TaskListRestriction {
     values
   }
 
+  def tasks(implicit context: Context): Seq[Task] = Tasks.inList(name)
 }
