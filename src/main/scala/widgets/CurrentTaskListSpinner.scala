@@ -10,7 +10,6 @@ import java.util.Calendar
 import android.database.sqlite.SQLiteDatabase
 
 class CurrentTaskListSpinner(spinner: Spinner, listener: (TaskListRestriction) => Any)(implicit context: Context) {
-  val app = context.getApplicationContext().asInstanceOf[App]
   lazy val taskLists = TaskLists.all
 
   spinner.fromArray(taskLists.map(_.toString).toArray)
