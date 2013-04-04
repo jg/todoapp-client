@@ -28,6 +28,7 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
   var handler: Handler             = _
   var taskList: TaskListView       = null
   var adapter: TaskAdapter         = null
+  lazy val currentTaskListSpinner = new CurrentTaskListSpinner(findViewById(R.id.current_task_list).asInstanceOf[Spinner], taskListChangeListener)
 
   lazy val postponePeriodSelectionDialog: PickerDialog = {
     val choices = List(TenSeconds, Hour, FourHours, SixHours, Day).map(_.toString).toArray[String]
@@ -60,17 +61,7 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
 
     // Init widgets
 
-    // CurrentTaskListSpinner
-    val taskListChangeListener = (choice: TaskListRestriction) => {
-      choice match {
-        case FilterToday => adapter.showTasksDueToday()
-        case FilterThisWeek => adapter.showTasksDueThisWeek()
-        case TaskList(list) => adapter.showTasksInList(list)
-        case _ => ()
-      }
-      refresh()
-    }
-    new CurrentTaskListSpinner(findViewById(R.id.current_task_list).asInstanceOf[Spinner], taskListChangeListener)
+    currentTaskListSpinner.init()
 
     // TaskListView
     taskList = new TaskListView(this, findViewById(R.id.taskList).asInstanceOf[ListView], adapter)
@@ -86,7 +77,7 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
     new Tabs(container, tabListener)
 
     // NewTaskForm
-    newTaskForm = new NewTaskForm(container, getResources(), getSupportFragmentManager(), TaskListRestrictions.current)
+    newTaskForm = new NewTaskForm(container, getResources(), getSupportFragmentManager())
 
     // CommandButton
     commandButton = new CommandButton(container, taskList, R.id.commandButton, () => refresh())
@@ -117,11 +108,24 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
     }
   }
 
+  def taskListChangeListener = (choice: TaskListRestriction) => {
+    choice match {
+      case FilterToday => adapter.showTasksDueToday()
+      case FilterThisWeek => adapter.showTasksDueThisWeek()
+      case TaskList(list) => adapter.showTasksInList(list)
+      case _ => ()
+    }
+    refresh()
+  }
+
+
   override def onBackPressed() = newTaskForm.hide()
 
   override def onResume() = {
     super.onResume()
     setupTimer()
+    // refresh the spinner, the task lists might have changed
+    currentTaskListSpinner.init()
   }
 
   override def onPause() = {

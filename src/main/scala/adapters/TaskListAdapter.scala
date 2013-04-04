@@ -13,7 +13,7 @@ import android.widget.Toast
 import android.graphics.Paint
 import android.os.Handler
 
-class TaskListAdapter(context: Context, cursor: Cursor) extends CursorAdapter(context, cursor, true) {
+class TaskListAdapter(context: Context, query: String) extends CursorAdapter(context, DBHelper.getDB(context).rawQuery(query, null), true) {
   implicit val c: Context = context
   lazy val taskListTable = new TaskListTable(context)
 
@@ -47,7 +47,7 @@ class TaskListAdapter(context: Context, cursor: Cursor) extends CursorAdapter(co
   }
 
   def refresh() = {
-    val cursor = DBHelper.getDB(context).rawQuery("select * from task_lists", null)
+    val cursor = DBHelper.getDB(context).rawQuery(query, null)
     changeCursor(cursor)
     notifyDataSetChanged()
   }

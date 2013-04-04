@@ -9,6 +9,9 @@ import android.os.AsyncTask
 import android.database.sqlite.SQLiteDatabase
 
 object TaskLists {
+  val InboxName = "Inbox"
+  def Inbox(implicit context: Context): TaskList = all.find(_.name == InboxName).get
+
   def all(implicit context: Context): Seq[TaskList] = table.all
 
   def find(taskList: TaskList)(implicit c: Context): Option[TaskList] =

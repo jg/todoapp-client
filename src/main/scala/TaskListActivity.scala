@@ -22,7 +22,7 @@ import java.util.{Timer, TimerTask}
 class TaskListActivity extends FragmentActivity with TypedActivity with ActivityExtensions {
   lazy val list = findViewById(R.id.taskLists).asInstanceOf[ListView]
   lazy val taskListTable = new TaskListTable(this)
-  lazy val adapter = new TaskListAdapter(this, taskListTable.cursor)
+  lazy val adapter = new TaskListAdapter(this, "select * from task_lists")
   lazy val newTaskListName = findViewById(R.id.newTaskListName).asInstanceOf[EditText]
   lazy val handler = new Handler()
 

@@ -12,4 +12,6 @@ object TaskListRestrictions {
   var current: TaskListRestriction = FilterToday
 
   def setCurrent(x: TaskListRestriction) = current = x
+
+  def all(implicit c: Context) = List(FilterToday, FilterThisWeek) ++ TaskLists.all
 }

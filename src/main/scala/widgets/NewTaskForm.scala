@@ -21,7 +21,7 @@ import android.database.sqlite.SQLiteDatabase
 import com.android.todoapp.Implicits._
 import com.android.todoapp.Utils._
 
-class NewTaskForm(view: View, resources: Resources, fragmentManager: FragmentManager, currentTaskList: TaskListRestriction)(implicit context: Context, conn: SQLiteDatabase) {
+class NewTaskForm(view: View, resources: Resources, fragmentManager: FragmentManager)(implicit context: Context, conn: SQLiteDatabase) {
 
   // buttons
 
@@ -87,7 +87,12 @@ class NewTaskForm(view: View, resources: Resources, fragmentManager: FragmentMan
     def addNewTask(title: String) = {
       val task = new Task(title)
 
-      task.setTaskList(currentTaskList.toString)
+      task.setTaskList(TaskListRestrictions.current match {
+        case TaskListFilter() => TaskLists.Inbox.name
+        case TaskList(name) => name
+      })
+      Log.i("set task list to " + TaskListRestrictions.current.toString)
+      Log.i("set task list id to " + task.task_list_id)
 
       if (prioritySelectionDialog.hasSelection)
         task.priority = Priority(prioritySelectionDialog.selection.get)
