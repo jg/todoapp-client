@@ -16,12 +16,11 @@ import android.support.v4.app.DialogFragment
 import android.support.v4.app.FragmentActivity
 import android.content.DialogInterface
 import android.content.DialogInterface.OnClickListener
-import android.database.sqlite.SQLiteDatabase
 
 import com.android.todoapp.Implicits._
 import com.android.todoapp.Utils._
 
-class NewTaskForm(view: View, resources: Resources, fragmentManager: FragmentManager)(implicit context: Context, conn: SQLiteDatabase) {
+class NewTaskForm(view: View, resources: Resources, fragmentManager: FragmentManager)(implicit context: Context) {
 
   // buttons
 
