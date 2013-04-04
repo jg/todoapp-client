@@ -17,5 +17,8 @@ object TaskLists {
   def remove(taskList: TaskList)(implicit c: Context): Boolean =
     table.remove(taskList.id) == 1
 
+  def add(taskList: TaskList)(implicit c: Context) =
+    table.insert(taskList)
+
   private def table(implicit c: Context): TaskListTable = TaskListTable(c)
 }

@@ -18,7 +18,7 @@ class TaskListTable(context: Context) {
   def cursor: Cursor = db.query(TableName, null, null, null, null, null, null)
 
   def remove(id: Long) = {
-    db.delete(TableName, "id = ?", Array[String](id.toString))
+    db.delete(TableName, "_id = " + id.toString, null)
   }
 
   def all: Seq[TaskList] = {
