@@ -24,11 +24,11 @@ object Priority extends Enumeration {
 
 
 import Priority._
-class Priority(val name: PriorityValue) {
-  override def toString = name.toString
+class Priority(val value: PriorityValue) {
+  override def toString = value.toString
 
   override def equals(that: Any): Boolean = that match {
-    case that: PriorityValue => name == that
+    case that: PriorityValue => value == that
     case that: Priority => this == that
     case _ => false
   }
