@@ -14,6 +14,7 @@ class CurrentTaskListSpinner(spinner: Spinner, listener: (TaskListRestriction) =
   var count = 0
   spinner.setAdapter(adapter(taskLists.map(_.toString)))
   TaskListRestrictions.setCurrentFromPrefs()
+  spinner.setSelection(TaskListRestrictions.currentIndex)
 
   spinner.setOnItemSelectedListener((parent: AdapterView[_], view: View, pos: Int, id: Long) => {
     val choice = taskLists(pos)

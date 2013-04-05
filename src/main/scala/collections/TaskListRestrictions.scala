@@ -17,6 +17,8 @@ object TaskListRestrictions {
     case None => FilterToday
   }
 
+  def currentIndex(implicit c: Context) = all.indexOf(current)
+
   def setCurrent(x: TaskListRestriction)(implicit c: Context) = {
     PreferenceStorage(c).put(prefName, x.toString)
     currentRestriction = Some(x)
