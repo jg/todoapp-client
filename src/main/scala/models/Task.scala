@@ -17,7 +17,7 @@ object Task extends DBModel {
     "created_at"   -> "string",
     "due_date"     -> "string",
     "due_time"     -> "integer",
-    "priority"     -> "string",
+    "priority"     -> "integer",
     "repeat"       -> "string",
     "postpone"     -> "string",
     "task_list_id" -> "integer"
@@ -105,7 +105,7 @@ class Task(var title: String) {
     values.put("task_list_id", task_list_id: java.lang.Long)
     values.put("created_at", created_at.completeFormat)
     values.put("updated_at", updated_at.completeFormat)
-    values.put("priority", priority.toString)
+    values.put("priority", priority.serialize: java.lang.Integer)
 
     if (due_date.isDefined)
       values.put("due_date", due_date.get.completeFormat)
@@ -217,6 +217,7 @@ class Task(var title: String) {
         case ("due_date", value: String) => due_date = Some(Date(value))
         case ("repeat", value: String) => repeat = RepeatPattern(value)
         case ("priority", value: String) => priority = Priority(value)
+        case ("priority", value: Integer) => priority = Priority.deserialize(value)
         case ("title", value: String) => title = value
         case ("postpone", value: String) => postpone = Period(value)
       }
@@ -242,7 +243,7 @@ class Task(var title: String) {
       ("id", cursor.getInt(i("_id"))),
       ("updated_at", cursor.getString(i("updated_at"))),
       ("created_at", cursor.getString(i("created_at"))),
-      ("priority", cursor.getString(i("priority"))),
+      ("priority", cursor.getInt(i("priority"))),
       ("title", cursor.getString(i("title"))))
 
     if (isPresent("completed_at")) lst += (("completed_at", cursor.getString(i("completed_at"))))
