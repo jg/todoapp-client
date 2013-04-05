@@ -212,7 +212,7 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
 
   private def pr(s: String) = Toast.makeText(context, s, Toast.LENGTH_SHORT).show();
 
-  private def ordering = " order by due_date asc, priority desc"
+  private def ordering = " order by priority desc, due_date asc"
 
   private def filter(query: String) = {
     val cursor = DBHelper.getDB(context).rawQuery(query, null)
