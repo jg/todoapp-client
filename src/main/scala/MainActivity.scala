@@ -28,7 +28,6 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
   var handler: Handler             = _
   var taskList: TaskListView       = null
   var adapter: TaskAdapter         = null
-  lazy val currentTaskListSpinner = new CurrentTaskListSpinner(findViewById(R.id.current_task_list).asInstanceOf[Spinner], taskListChangeListener)
   implicit lazy val c: Activity with Refreshable = this
 
   lazy val postponePeriodSelectionDialog: PickerDialog = {
@@ -62,7 +61,7 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
 
     // Init widgets
 
-    currentTaskListSpinner.init()
+    new CurrentTaskListSpinner(findViewById(R.id.current_task_list).asInstanceOf[Spinner], taskListChangeListener)
 
     // TaskListView
     taskList = new TaskListView(this, findViewById(R.id.taskList).asInstanceOf[ListView], adapter)
@@ -125,8 +124,6 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
   override def onResume() = {
     super.onResume()
     setupTimer()
-    // refresh the spinner, the task lists might have changed
-    currentTaskListSpinner.init()
   }
 
   override def onPause() = {

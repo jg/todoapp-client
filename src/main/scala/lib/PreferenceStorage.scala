@@ -25,5 +25,5 @@ class PreferenceStorage(context: Context) {
     else None
   }
   
-  def isPresent(key: String) = get(key).isDefined
+  def contains(key: String) = settings.contains(key)
 }

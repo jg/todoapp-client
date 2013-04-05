@@ -10,12 +10,17 @@ import java.util.Calendar
 import android.database.sqlite.SQLiteDatabase
 
 class CurrentTaskListSpinner(spinner: Spinner, listener: (TaskListRestriction) => Any)(implicit context: Context) {
-  init()
+  // OnItemSelectedListener fires when CurrentTaskListSpinner is first initialized
+  var count = 0
+  spinner.setAdapter(adapter(taskLists.map(_.toString)))
+  TaskListRestrictions.setCurrentFromPrefs()
 
   spinner.setOnItemSelectedListener((parent: AdapterView[_], view: View, pos: Int, id: Long) => {
     val choice = taskLists(pos)
-    TaskListRestrictions.setCurrent(choice)
     listener(choice)
+    // Do not overwrite the current task list on widget initialization
+    if (count > 0) TaskListRestrictions.setCurrent(choice)
+    count = count + 1
   })
 
   def adapter(array: Array[String]): ArrayAdapter[String] = {
@@ -24,9 +29,6 @@ class CurrentTaskListSpinner(spinner: Spinner, listener: (TaskListRestriction) =
     adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
     adapter
   }
-
-  def init() =
-    spinner.setAdapter(adapter(taskLists.map(_.toString)))
 
   def taskLists =
     TaskListRestrictions.all.toArray
