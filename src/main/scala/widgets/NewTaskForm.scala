@@ -21,9 +21,6 @@ import com.android.todoapp.Implicits._
 import com.android.todoapp.Utils._
 
 class NewTaskForm(view: View, resources: Resources, fragmentManager: FragmentManager)(implicit context: Context with Refreshable) {
-
-  // buttons
-
   val priorityButton = findButton(R.id.priority)
   val dateButton     = findButton(R.id.date)
   val timeButton     = findButton(R.id.time)
@@ -35,20 +32,12 @@ class NewTaskForm(view: View, resources: Resources, fragmentManager: FragmentMan
     val priorities = resources.getStringArray(R.array.task_priorities)
     new PickerDialog(context, priorities.asInstanceOf[Array[CharSequence]], listener)
   }
-
-  lazy val dateSelectionDialog = {
-    new DatePickerDialog(context, "Date", listener)
-  }
-
-  lazy val timeSelectionDialog = {
-    new TimePickerDialog(context, listener)
-  }
-
-  lazy val repeatSelectionDialog = {
+  lazy val dateSelectionDialog = new DatePickerDialog(context, "Date", listener)
+  lazy val timeSelectionDialog = new TimePickerDialog(context, listener)
+  lazy val repeatSelectionDialog =
     new PickerDialog(context, RepeatPattern.stringValues.asInstanceOf[Array[CharSequence]], listener)
-  }
-
-  lazy val selectionDialogs = List(prioritySelectionDialog, dateSelectionDialog, timeSelectionDialog, repeatSelectionDialog)
+  lazy val selectionDialogs =
+    List(prioritySelectionDialog, dateSelectionDialog, timeSelectionDialog, repeatSelectionDialog)
 
   def highlightButtonsWithSelection(): Unit = {
     val bgSelectedColor = 0xFF669900
