@@ -98,7 +98,7 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
 
   def filterWithCurrentQuery() = {
     filter(currentQuery.toSQL)
-    Log.i(currentQuery.toSQL)
+    // Log.i(currentQuery.toSQL)
   }
 
   def getTask(i: Integer): Task = Task.fromCursor(getItem(i).asInstanceOf[Cursor])
