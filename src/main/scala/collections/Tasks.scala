@@ -16,6 +16,8 @@ object Tasks {
 
   def all(implicit context: Context): Seq[Task] = table.all
 
+  def findById(id: Long)(implicit c: Context): Option[Task] = all.find(_.id == id)
+
   private def table(implicit c: Context): TaskTable = TaskTable()
 
   def inList(list: String)(implicit c: Context): Seq[Task] = all.filter((task: Task) => task.task_list == list)

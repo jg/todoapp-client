@@ -111,6 +111,7 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
   override def bindView(view: View, context: Context, cursor: Cursor) {
     val task = Task.fromCursor(cursor)
     val taskTitle = view.findViewById(R.id.taskTitle).asInstanceOf[TextView]
+    lazy val taskId = view.findViewById(R.id.taskId).asInstanceOf[TextView]
 
     def setTaskPriority(): Unit = {
       val v = view.findViewById(R.id.taskPriority)
@@ -146,10 +147,9 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
     }
 
     def setTaskClickListener() = {
-      val v = view.findViewById(R.id.taskTitle)
-      val position = cursor.getPosition()
+      val v = view.findViewById(R.id.taskTitle).asInstanceOf[TextView]
       v.setOnClickListener((v: View) =>
-        for (handler <- taskClickHandler) handler(position))
+        for (handler <- taskClickHandler) handler(taskId.getText().toString.toInt))
     }
 
     def setTaskCheckboxToggleListener() = {
@@ -192,6 +192,9 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
         taskTitle.setPaintFlags(taskTitle.getPaintFlags() & (~ Paint.STRIKE_THRU_TEXT_FLAG))
     }
 
+    def setTaskId() = taskId.setText(task.id.toString)
+
+    setTaskId()
     setTaskTitle()
     setTaskPriority()
     setTaskList()

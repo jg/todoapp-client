@@ -53,9 +53,9 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
     // Init TaskAdapter
     adapter = new TaskAdapter(this, DBHelper.getDB(this).rawQuery("select * from tasks", null))
 
-    adapter.registerTaskClickHandler((taskCursorPosition: Int) =>  {
+    adapter.registerTaskClickHandler((taskId: Int) =>  {
       val intent = new Intent(context, classOf[TaskEditActivity])
-      intent.putExtra("taskPosition", taskCursorPosition);
+      intent.putExtra("taskId", taskId);
       context.startActivity(intent)
     })
 

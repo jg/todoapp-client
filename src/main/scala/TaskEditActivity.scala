@@ -12,8 +12,11 @@ import android.content.Intent
 import android.content.Context
 
 class TaskEditActivity extends FragmentActivity with ActivityExtensions {
-  var task: Task = _
-
+  lazy val task: Task = {
+    val intent = getIntent()
+    val taskId = intent.getIntExtra("taskId", -1)
+    Tasks.findById(taskId).get
+  }
   val NotSet = "Not set"
 
   lazy val dateSelectionDialog = {
@@ -35,15 +38,7 @@ class TaskEditActivity extends FragmentActivity with ActivityExtensions {
     super.onCreate(bundle)
     setContentView(R.layout.task_edit)
 
-    task = getTaskFromIntent()
-
     initTaskEditForm()
-  }
-
-  def getTaskFromIntent() = {
-    val intent = getIntent()
-    val taskPosition = intent.getIntExtra("taskPosition", -1)
-    Tasks.adapter.getTask(taskPosition)
   }
 
   def setDueDateButtonText(text: String) = findButton(R.id.due_date).setText(text)
