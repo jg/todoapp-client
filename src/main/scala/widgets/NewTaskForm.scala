@@ -26,7 +26,7 @@ class NewTaskForm(view: View, resources: Resources, fragmentManager: FragmentMan
   val timeButton     = findButton(R.id.time)
   val repeatButton   = findButton(R.id.repeat)
 
-  val listener = (selection: Any) => { highlightButtonsWithSelection() }
+  val listener = (selection: Any) => { setButtonsHighlight() }
 
   lazy val prioritySelectionDialog: PickerDialog = {
     val priorities = resources.getStringArray(R.array.task_priorities)
@@ -39,7 +39,7 @@ class NewTaskForm(view: View, resources: Resources, fragmentManager: FragmentMan
   lazy val selectionDialogs =
     List(prioritySelectionDialog, dateSelectionDialog, timeSelectionDialog, repeatSelectionDialog)
 
-  def highlightButtonsWithSelection(): Unit = {
+  def setButtonsHighlight(): Unit = {
     val bgSelectedColor = 0xFF669900
 
     val buttonMap = Map((priorityButton, prioritySelectionDialog),
@@ -47,9 +47,7 @@ class NewTaskForm(view: View, resources: Resources, fragmentManager: FragmentMan
                         (timeButton, timeSelectionDialog),
                         (repeatButton, repeatSelectionDialog))
 
-    buttonMap.foreach{case (button, dialog) => {
-      if (dialog.hasSelection) button.setPressed(true)
-    }}
+    buttonMap.foreach{case (button, dialog) => button.setPressed(dialog.hasSelection)}
   }
 
 
@@ -101,7 +99,10 @@ class NewTaskForm(view: View, resources: Resources, fragmentManager: FragmentMan
     if (title.length > 0)  {
       hide()
       addNewTask(title)
-      selectionDialogs.foreach(_.clearSelection()) // clear previous dialog selections
+      // clear previous dialog selections
+      selectionDialogs.foreach(_.clearSelection()) 
+      // clear button highlight
+      setButtonsHighlight()
     }
 
     true
