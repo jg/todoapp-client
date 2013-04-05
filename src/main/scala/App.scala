@@ -13,5 +13,5 @@ class App extends Application {
 
 object App {
   def host = "http://polar-scrubland-5755.herokuapp.com/"
-  val DbVersion = 87
+  val DbVersion = 88
 }

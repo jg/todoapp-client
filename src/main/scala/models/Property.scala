@@ -95,7 +95,7 @@ object Property {
 
 class Property[T](val name: String, var value: Option[T])(implicit propertySerializer: PropertySerializer[T]) {
   type OnSetCallback = (Option[T]) => Unit
-  var onSetCallback: OnSetCallback = _
+  var onSetCallback: Option[OnSetCallback] = None
 
   def jsonKeyValue: String = {
     if (value.isDefined)
@@ -108,18 +108,18 @@ class Property[T](val name: String, var value: Option[T])(implicit propertySeria
 
   def set(x: T) = {
     value = Some(x)
-    onSetCallback(value)
+    for (callback <- onSetCallback) callback(value)
   }
 
   def setFromAny(x: Any) = {
     val v: T = x.asInstanceOf[T]
     value = Some(v)
-    onSetCallback(value)
+    for (callback <- onSetCallback) callback(value)
   }
 
   def setOpt(x: Option[T]) = {
     value = x
-    onSetCallback(x)
+    for (callback <- onSetCallback) callback(value)
   }
 
   def isEmpty = value.isEmpty
@@ -139,5 +139,5 @@ class Property[T](val name: String, var value: Option[T])(implicit propertySeria
 
   def setFromCursor(c: Cursor, pos: Integer) = set(propertySerializer.fromCursor(c, pos))
 
-  def registerOnSetCallback(f: OnSetCallback)(implicit context: Context) = onSetCallback = f
+  def registerOnSetCallback(f: OnSetCallback)(implicit context: Context) = onSetCallback = Some(f)
 }
