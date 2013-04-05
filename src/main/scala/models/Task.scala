@@ -10,7 +10,7 @@ import android.database.sqlite.SQLiteDatabase
 // Generalize into a PropertySet?
 trait TaskProperties {
   import TypeSerializers._
-  var id: Property[Long]              = Property[Long]("id", None)
+  var id: Property[Long]              = Property[Long]("_id", None)
   var title: Property[String]         = Property[String]("title", None)
   var task_list_id: Property[Long]    = Property[Long]("task_list_id", Some(1))
   var completed_at: Property[Date]    = Property[Date]("completed_at", None)
