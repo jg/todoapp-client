@@ -30,6 +30,7 @@ object TaskAdapter {
 }
 
 class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(context, cursor, true) with Refreshable {
+  import PropertyConversions._
   val taskTable = new TaskTable()
   var checkBoxStateChangeHandler: Option[(CompoundButton, Boolean) => Unit] = None
   var taskClickHandler: Option[(Int) => Unit] = None
@@ -157,7 +158,7 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
         )
     }
 
-    def setTaskTitle() = taskTitle.setText(task.title)
+    def setTaskTitle() = taskTitle.setText(task.title.get)
 
     def setTaskDueDate() = {
       if (task.isCompleted)
@@ -165,12 +166,12 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
       else {
         if (task.postpone.isDefined) {
           val hourDifference =
-                task.updated_at.addPeriod(task.postpone.get).hourDifference(Date.now)
+                task.updated_at.get.addPeriod(task.postpone.get).hourDifference(Date.now)
           if (hourDifference != 0) {
             dateView.setText("postponed for " + hourDifference.toString + " hours")
           } else {
             val minuteDifference =
-              task.updated_at.addPeriod(task.postpone.get).minuteDifference(Date.now)
+              task.updated_at.get.addPeriod(task.postpone.get).minuteDifference(Date.now)
             dateView.setText("postponed for " + minuteDifference.toString + " minutes")
           }
         } else if (task.due_date.isDefined) {
@@ -207,8 +208,6 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
 
     v
   }
-
-  private def columnIndex(fieldName: String) = Task.columnIndex(fieldName)
 
   private def pr(s: String) = Toast.makeText(context, s, Toast.LENGTH_SHORT).show();
 

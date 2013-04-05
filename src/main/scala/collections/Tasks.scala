@@ -37,14 +37,14 @@ object Tasks {
 
       val dbTask = findTask(task)
       if (dbTask.isEmpty) { // task from server not present in db
-        Log.i(task.title + " with ctime " + task.created_at.completeFormat + " not present in the db, inserting")
+        Log.i(task.title + " with ctime " + task.created_at.get.completeFormat + " not present in the db, inserting")
         TaskTable().insert(task)
       } else {
-        if (task.updated_at.getMillis > dbTask.get.updated_at.getMillis) { // newer task from server
-          Log.i(task.title + " with ctime " + task.created_at.completeFormat + " found in db, server one is newer, updating")
+        if (task.updated_at.get.getMillis > dbTask.get.updated_at.get.getMillis) { // newer task from server
+          Log.i(task.title + " with ctime " + task.created_at.get.completeFormat + " found in db, server one is newer, updating")
           TaskTable().update(task)
         } else {
-          Log.i(task.title + " with ctime " + task.created_at.completeFormat + " found in db, server one is older")
+          Log.i(task.title + " with ctime " + task.created_at.get.completeFormat + " found in db, server one is older")
         }
       }
 

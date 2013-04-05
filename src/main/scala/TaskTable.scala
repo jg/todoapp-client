@@ -9,12 +9,13 @@ object TaskTable {
 }
 
 class TaskTable(implicit c: Context) {
+  import PropertyConversions._
   def db: SQLiteDatabase = DBHelper.getDB(c)
 
   def insert(task: Task) = db.insert("tasks", null, task.contentValues())
 
   def update(task: Task): Int = {
-    val whereArgs: Array[String] = Array(task.created_at.completeFormat);
+    val whereArgs: Array[String] = Array(task.created_at.get.completeFormat);
     db.update("tasks", task.contentValues(), "created_at = ?", whereArgs)
   }
 

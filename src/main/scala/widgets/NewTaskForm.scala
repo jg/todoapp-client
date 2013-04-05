@@ -71,7 +71,7 @@ class NewTaskForm(view: View, resources: Resources, fragmentManager: FragmentMan
 
     def handleTaskTitleInputEnterKey(v: TextView, actionId: Int, event: KeyEvent) = {
     def addNewTask(title: String) = {
-      val task = new Task(title)
+      val task = new Task()
 
       task.setTaskList(TaskListRestrictions.current match {
         case TaskListFilter() => TaskLists.Inbox.name
@@ -81,13 +81,13 @@ class NewTaskForm(view: View, resources: Resources, fragmentManager: FragmentMan
       Log.i("set task list id to " + task.task_list_id)
 
       if (prioritySelectionDialog.hasSelection)
-        task.priority = Priority(prioritySelectionDialog.selection.get)
+        task.priority.set(Priority(prioritySelectionDialog.selection.get))
       if (dateSelectionDialog.hasSelection)
-        task.due_date = Some(dateSelectionDialog.selection.get)
+        task.due_date.set(dateSelectionDialog.selection.get)
       if (timeSelectionDialog.hasSelection)
-        task.due_time = Some(timeSelectionDialog.selection.get)
+        task.due_time.set(timeSelectionDialog.selection.get)
       if (repeatSelectionDialog.hasSelection)
-        task.repeat   = RepeatPattern(repeatSelectionDialog.selection.get)
+        task.repeat.set(RepeatPattern(repeatSelectionDialog.selection.get).get)
 
       Log.i(task.toJSON(List()))
       TaskTable().insert(task)

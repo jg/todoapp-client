@@ -12,6 +12,7 @@ import android.content.Intent
 import android.content.Context
 
 class TaskEditActivity extends FragmentActivity with ActivityExtensions {
+  import PropertyConversions._
   lazy val task: Task = {
     val intent = getIntent()
     val taskId = intent.getIntExtra("taskId", -1)
@@ -46,7 +47,7 @@ class TaskEditActivity extends FragmentActivity with ActivityExtensions {
   def setDueTimeButtonText(text: String) = findButton(R.id.due_time).setText(text)
 
   def initTaskEditForm() = {
-    def setTaskTitle() = findEditText(R.id.task_title).setText(task.title)
+    def setTaskTitle() = findEditText(R.id.task_title).setText(task.title.get)
 
     def populateTaskListSpinner() = {
       val spinner = findSpinner(R.id.task_list)
@@ -103,12 +104,12 @@ class TaskEditActivity extends FragmentActivity with ActivityExtensions {
         timeSelectionDialog.selection else None
 
       findButton(R.id.save).setOnClickListener((v: View) => {
-        task.priority = taskPriority
-        task.title = taskTitle
-        task.task_list_id = taskListId
-        task.repeat = RepeatPattern(taskRepeat)
-        task.due_date = taskDueDate
-        task.due_time = taskDueTime
+        task.priority.set(taskPriority)
+        task.title.set(taskTitle)
+        task.task_list_id.set(taskListId)
+        task.repeat.setOpt(RepeatPattern(taskRepeat))
+        task.due_date.setOpt(taskDueDate)
+        task.due_time.setOpt(taskDueTime)
         task.save()
         pr("Task updated")
 

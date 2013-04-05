@@ -2,6 +2,7 @@ package com.android.todoapp
 
 import java.lang.IllegalArgumentException
 import java.util.ArrayList
+import android.content.Context
 
 class ApiClient(rootUrl: String, userName: String, password: String) {
   lazy val collection = Collection(get(rootUrl))
@@ -25,9 +26,10 @@ class ApiClient(rootUrl: String, userName: String, password: String) {
 
   def taskCollection: Option[Collection] = taskUrl.map(url => Collection(get(url)))
 
-  def getTasks(): List[Task] = {
+  def getTasks()(implicit c: Context): List[Task] = {
     for (taskItem <- taskCollection.get.items.get)
-      yield Task.fromDataList(taskItem.data.get)
+      yield Task.deserialize(
+        for (dataItem <- taskItem.data.get) yield (dataItem.name, dataItem.value))
   }
 
   def putTasks = {
