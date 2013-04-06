@@ -10,15 +10,23 @@ trait PropertySerializer[T] {
 
   def serialize(x: T): String
 
-  def fromCursor(c: Cursor, pos: Integer): Option[T]
+  def fromCursor(c: Cursor, pos: Integer): Option[T] = {
+    if (c.isNull(pos))
+      None
+    else fromCursor_(c, pos)
+  }
+
+  // this should get the value at pos from cursor, null case is handled uniformly in fromCursor()
+  def fromCursor_(c: Cursor, pos: Integer): Option[T]
 
   def addToContentValues(c: ContentValues, name: String, value: T) 
+
 }
 
 // TODO: serializers should log unsuccessfull fromCursor calls
 object TypeSerializers { 
   implicit object DatePropertySerializer extends PropertySerializer[Date] {
-    def fromCursor(c: Cursor, pos: Integer): Option[Date] = try {
+    def fromCursor_(c: Cursor, pos: Integer): Option[Date] = try {
       Some(Date(c.getString(pos)))
     } catch {
       case e: Exception => None
@@ -33,7 +41,7 @@ object TypeSerializers {
   implicit object LongPropertySerializer extends PropertySerializer[Long] {
     override def sqlType = "integer"
 
-    def fromCursor(c: Cursor, pos: Integer): Option[Long] = try {
+    def fromCursor_(c: Cursor, pos: Integer): Option[Long] = try {
       Some(c.getLong(pos))
     } catch {
       case e: Exception => None
@@ -46,7 +54,7 @@ object TypeSerializers {
   }
 
   implicit object StringPropertySerializer extends PropertySerializer[String] {
-    def fromCursor(c: Cursor, pos: Integer): Option[String] = try {
+    def fromCursor_(c: Cursor, pos: Integer): Option[String] = try {
       Some(c.getString(pos))
     } catch {
       case e: Exception => None
@@ -61,7 +69,7 @@ object TypeSerializers {
   implicit object TimePropertySerializer extends PropertySerializer[Time] {
     override def sqlType = "integer"
 
-    def fromCursor(c: Cursor, pos: Integer): Option[Time] = try {
+    def fromCursor_(c: Cursor, pos: Integer): Option[Time] = try {
       Some(Time.fromMinutes(c.getInt(pos)))
     } catch {
       case e: Exception => None
@@ -74,7 +82,7 @@ object TypeSerializers {
   }
 
   implicit object PriorityPropertySerializer extends PropertySerializer[Priority] {
-    def fromCursor(c: Cursor, pos: Integer): Option[Priority] = try {
+    def fromCursor_(c: Cursor, pos: Integer): Option[Priority] = try {
       Some(Priority(c.getString(pos)))
     } catch {
       case e: Exception => None
@@ -88,7 +96,7 @@ object TypeSerializers {
 
   implicit object RepeatPropertySerializer extends PropertySerializer[RepeatPattern] { 
     // TODO: .get here looks weird, RepeatPattern should just throw an exception if someone provided garbage to the factory
-    def fromCursor(c: Cursor, pos: Integer): Option[RepeatPattern] = try {
+    def fromCursor_(c: Cursor, pos: Integer): Option[RepeatPattern] = try {
       Some(RepeatPattern(c.getString(pos)).get)
     } catch {
       case e: Exception => None
@@ -102,7 +110,7 @@ object TypeSerializers {
 
   implicit object PeriodPropertySerializer extends PropertySerializer[Period] { 
     // TODO: .get here looks weird, Period should just throw an exception if someone provided garbage to the factory
-    def fromCursor(c: Cursor, pos: Integer): Option[Period] = try {
+    def fromCursor_(c: Cursor, pos: Integer): Option[Period] = try {
       Some(Period(c.getString(pos)).get)
     } catch {
       case e: Exception => None
@@ -116,7 +124,7 @@ object TypeSerializers {
 }
 
 object PropertyConversions {
-  implicit def propertyToValueConversion[T](p: Property[T]): Option[T] = p.value
+  implicit def propertyToOptionConversion[T](p: Property[T]): Option[T] = p.value
   implicit def StringToCharSequence(s: String): java.lang.CharSequence = s.asInstanceOf[java.lang.CharSequence]
 }
 

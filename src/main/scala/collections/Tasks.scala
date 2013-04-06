@@ -16,13 +16,13 @@ object Tasks {
 
   def all(implicit context: Context): Seq[Task] = table.all
 
-  def findById(id: Long)(implicit c: Context): Option[Task] = all.find(_.id == id)
+  def findById(id: Long)(implicit c: Context): Option[Task] = all.find(_.id.get == id)
 
   private def table(implicit c: Context): TaskTable = TaskTable()
 
   def inList(list: String)(implicit c: Context): Seq[Task] = all.filter((task: Task) => task.task_list == list)
 
-  def findTask(task: Task)(implicit context: Context): Option[Task] = Tasks.adapter.allTasks.find(_.created_at == task.created_at)
+  def findTask(task: Task)(implicit context: Context): Option[Task] = Tasks.adapter.allTasks.find(_.created_at.get == task.created_at.get)
 
   def getTasks(tasks: Collection)(implicit context: Context) = {
     Log.i("-------------------------- get from server -----------------------------------")

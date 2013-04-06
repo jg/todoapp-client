@@ -21,16 +21,20 @@ trait TaskProperties {
   var priority: Property[Priority]    = Property[Priority]("priority", Some(new Priority(Priority.Normal)))
   var repeat: Property[RepeatPattern] = Property[RepeatPattern]("repeat", None)
   var postpone: Property[Period]      = Property[Period]("postpone", None)
+
   val properties: List[Property[_]]   = List(id, title, task_list_id, completed_at, created_at, updated_at, due_date, due_time, priority, repeat, postpone)
 
   def toSQL() = {
-    properties.map((p: Property[_]) =>
+    "_id integer primary key, " +
+    properties.filter(_ != id).map((p: Property[_]) =>
       p.name + " " + p.sqlType).mkString(", ") + ", FOREIGN KEY(task_list_id) REFERENCES task_list(id)"
   }
 
   def contentValues(): ContentValues = {
     val values = new ContentValues()
-    properties.foreach((p: Property[_]) => { p.addToContentValues(values) })
+    properties.foreach((p: Property[_]) => {
+      if (p != id) p.addToContentValues(values)
+    })
     values
   }
 
@@ -92,6 +96,7 @@ object Task extends DBModel with TaskProperties {
 }
 
 class Task(implicit context: Context) extends TaskProperties {
+  import PropertyConversions._
   def task_list(implicit context: Context): String = TaskListTable(context).findById(task_list_id.get) match {
     case Some(lst) => lst.name
     case None => throw new Exception("TaskList with id " + task_list_id + " not found")
@@ -114,13 +119,11 @@ class Task(implicit context: Context) extends TaskProperties {
 
   def save()(implicit context: Context) {
     updated_at.set(Date.now)
-    if ( savedP() )
-      TaskTable().update(this)
-    else
-      id.set(TaskTable().insert(this))
+    id.value match {
+      case Some(ident) => TaskTable().update(this)
+      case None => id.set(TaskTable().insert(this))
+    }
   }
-
-  def savedP(): Boolean = id != -1
 
   def isCompleted = !completed_at.isEmpty
 

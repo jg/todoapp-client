@@ -85,6 +85,7 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
 
     // SyncButton
     findButton(R.id.synchronizeButton).setOnClickListener((view: View) => synchronizeButtonHandler(view))
+
   }
 
   def refresh() = adapter.filterWithCurrentQuery()

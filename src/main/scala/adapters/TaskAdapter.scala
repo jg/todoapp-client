@@ -97,10 +97,8 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
     filterWithCurrentQuery()
   }
 
-  def filterWithCurrentQuery() = {
+  def filterWithCurrentQuery() =
     filter(currentQuery.toSQL)
-    // Log.i(currentQuery.toSQL)
-  }
 
   def getTask(i: Integer): Task = Task.fromCursor(getItem(i).asInstanceOf[Cursor])
 
@@ -111,6 +109,7 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
 
   override def bindView(view: View, context: Context, cursor: Cursor) {
     val task = Task.fromCursor(cursor)
+    // Log.i(task.toJSON(List()))
     val taskTitle = view.findViewById(R.id.taskTitle).asInstanceOf[TextView]
     lazy val taskId = view.findViewById(R.id.taskId).asInstanceOf[TextView]
 
@@ -146,7 +145,10 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
     def setTaskClickListener() = {
       val v = view.findViewById(R.id.taskTitle).asInstanceOf[TextView]
       v.setOnClickListener((v: View) =>
-        for (handler <- taskClickHandler) handler(taskId.getText().toString.toInt))
+        for (handler <- taskClickHandler) {
+          val id = taskId.getText().toString.toInt
+          handler(id)
+        })
     }
 
     def setTaskCheckboxToggleListener() = {
@@ -189,7 +191,9 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
         taskTitle.setPaintFlags(taskTitle.getPaintFlags() & (~ Paint.STRIKE_THRU_TEXT_FLAG))
     }
 
-    def setTaskId() = taskId.setText(task.id.get.toString)
+    def setTaskId() = {
+      taskId.setText(task.id.get.toString)
+    }
 
     setTaskId()
     setTaskTitle()

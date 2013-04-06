@@ -16,7 +16,10 @@ class TaskEditActivity extends FragmentActivity with ActivityExtensions {
   lazy val task: Task = {
     val intent = getIntent()
     val taskId = intent.getIntExtra("taskId", -1)
-    Tasks.findById(taskId).get
+    Tasks.findById(taskId) match {
+      case Some(task) => task
+      case None => throw new Exception("No task with taskId: " + taskId)
+    }
   }
   val NotSet = "Not set"
 
