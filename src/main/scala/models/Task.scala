@@ -41,7 +41,13 @@ trait TaskProperties {
     task
   }
 
-  private def propertyIndex(p: Property[_]) = properties.indexOf(p)
+  private def propertyIndex(p: Property[_]) = {
+    val index = properties.map(_.name).indexOf(p.name)
+    if (index > -1)
+      index
+    else
+      throw new Exception("No such property found: " + p.name)
+  }
 
   // construct a task from key value pairs, used in fromJSON
   def deserialize(lst: Iterable[(String, Any)])(implicit context: Context): Task = {
