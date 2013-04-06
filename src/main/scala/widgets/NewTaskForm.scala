@@ -73,12 +73,11 @@ class NewTaskForm(view: View, resources: Resources, fragmentManager: FragmentMan
     def addNewTask(title: String) = {
       val task = new Task()
 
+      task.title.set(title)
       task.setTaskList(TaskListRestrictions.current match {
         case TaskListFilter() => TaskLists.Inbox.name
         case TaskList(name) => name
       })
-      Log.i("set task list to " + TaskListRestrictions.current.toString)
-      Log.i("set task list id to " + task.task_list_id)
 
       if (prioritySelectionDialog.hasSelection)
         task.priority.set(Priority(prioritySelectionDialog.selection.get))
