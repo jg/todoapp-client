@@ -157,7 +157,7 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
         (buttonView: CompoundButton, isChecked: Boolean) => {
           for (handler <- checkBoxStateChangeHandler) handler(buttonView, isChecked)
         }
-        )
+      )
     }
 
     def setTaskTitle() = taskTitle.setText(task.title.get)
