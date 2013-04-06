@@ -189,7 +189,7 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
         taskTitle.setPaintFlags(taskTitle.getPaintFlags() & (~ Paint.STRIKE_THRU_TEXT_FLAG))
     }
 
-    def setTaskId() = taskId.setText(task.id.toString)
+    def setTaskId() = taskId.setText(task.id.get.toString)
 
     setTaskId()
     setTaskTitle()
