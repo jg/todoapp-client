@@ -66,7 +66,7 @@ class TaskEditActivity extends FragmentActivity with ActivityExtensions {
       spinner.fromArray(priorities)
 
       // set value
-      val priority = task.priority.toString
+      val priority = task.priority.get.toString
       val index = priorities.indexOf(priority)
       spinner.setSelection(index)
     }

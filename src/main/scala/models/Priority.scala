@@ -24,7 +24,7 @@ object Priority extends Enumeration {
   def deserialize(priority: Int): Priority = priority match {
     case 1 => new Priority(Priority.High)
     case -1 => new Priority(Priority.Low)
-    case _ => new Priority(Priority.Normal)
+    case 0 => new Priority(Priority.Normal)
   }
 }
 

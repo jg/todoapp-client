@@ -83,7 +83,7 @@ object TypeSerializers {
 
   implicit object PriorityPropertySerializer extends PropertySerializer[Priority] {
     def fromCursor_(c: Cursor, pos: Integer): Option[Priority] = try {
-      Some(Priority(c.getString(pos)))
+      Some(Priority.deserialize(c.getInt(pos)))
     } catch {
       case e: Exception => None
     }
@@ -91,7 +91,7 @@ object TypeSerializers {
     def addToContentValues(c: ContentValues, name: String, value: Priority) =
       c.put(name, value.serialize: Integer)
 
-    def serialize(x: Priority): String = x.toString
+    def serialize(x: Priority): String = x.serialize.toString
   }
 
   implicit object RepeatPropertySerializer extends PropertySerializer[RepeatPattern] { 
