@@ -99,7 +99,7 @@ class Task(implicit context: Context) extends TaskProperties {
   import PropertyConversions._
   def task_list(implicit context: Context): String = TaskListTable(context).findById(task_list_id.get) match {
     case Some(lst) => lst.name
-    case None => throw new Exception("TaskList with id " + task_list_id + " not found")
+    case None => throw new Exception("TaskList with id " + task_list_id.get + " not found")
   }
 
   def setTaskList(name: String)(implicit context: Context) = {
