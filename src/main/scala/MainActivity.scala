@@ -19,14 +19,21 @@ import android.content.DialogInterface.OnClickListener
 import com.android.todoapp.Implicits._
 import com.android.todoapp.Utils._
 import java.net.UnknownHostException
+import java.util.{Timer, TimerTask}
+import android.app.ProgressDialog
+import android.os.Handler
+
+import android.content.SharedPreferences
 
 class MainActivity extends FragmentActivity with TypedActivity with ActivityExtensions {
-  var context: Context   = _
+  implicit val context: Context   = this
   var taskList: TaskListView = _
 
   var newTaskForm: NewTaskForm = _
   var commandButton: CommandButton = _
-  val taskTable = TaskTable(this)
+  implicit val taskTable = TaskTable(this)
+  var timer: Timer = new Timer()
+  var handler: Handler = _
 
   override def onCreate(bundle: Bundle) {
     taskTable.open()
@@ -35,7 +42,6 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
     setContentView(R.layout.main)
 
     // Init widgets
-    context = this
     taskList = new TaskListView(context, findViewById(R.id.taskList).asInstanceOf[ListView])
 
     val container = findViewById(R.id.container)
@@ -53,85 +59,94 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
     // sync button
     findButton(R.id.synchronizeButton).setOnClickListener((view: View) => synchronizeButtonHandler(view))
 
-    // restore repeating tasks that are ready
-    Tasks.adapter(this).allTasks
-      .filter((t: Task) => t.isReadyToRepeat)
-      .map((t: Task) => t.repeatTask())
-
+    handler = new Handler()
   }
-  override def onDestroy() = taskTable.close()
+
+  def setupTimer() = {
+    timer = new Timer()
+    val timerTask = new RestoreRepeatingPostponedTasks(this, Tasks.adapter(this))
+    timer.schedule(timerTask, 1000, 1000)
+  }
+
+  class RestoreRepeatingPostponedTasks(context: Context, taskAdapter: TaskAdapter) extends TimerTask {
+    def restorePostponedTasks(tasks: Seq[Task]) = { // restore postponed tasks that are ready
+      val readyTasks = tasks.filter((t: Task) => t.isPostponeOver)
+      val readyCount = readyTasks.size
+      readyTasks.foreach((t: Task) => {
+        t.resetPostpone()
+        t.save(context)
+      })
+
+      if (readyCount > 0)
+        Util.pr(context, "Restored " + readyCount.toString + " tasks from postponed state")
+    }
+
+    def restoreRepeatingTasks(tasks: Seq[Task]) = { // restore repeating tasks that are ready
+      val readyTasks = tasks.filter((t: Task) => t.isReadyToRepeat)
+      val readyCount = readyTasks.size
+      readyTasks.foreach((t: Task) => {
+        t.repeatTask()
+        Log.i(t.toJSON(List()))
+        t.save(context)
+      })
+
+      if (readyCount > 0)
+        Util.pr(context, "Restored " + readyCount.toString + " recurring tasks from completed state")
+    }
+
+    def run() = {
+      handler.post(new Runnable() {
+        override def run() {
+          val tasks = taskAdapter.allTasks
+
+          restorePostponedTasks(tasks)
+          restoreRepeatingTasks(tasks)
+        }
+      })
+    }
+  }
 
   override def onBackPressed() = newTaskForm.hide()
 
-  override def onPause() = {
-    super.onPause()
-    taskTable.close()
+  override def onResume() = {
+    super.onResume()
+    setupTimer()
   }
 
-  override def onResume() = {
+  override def onPause() = {
     super.onPause()
+    timer.cancel()
+  }
+
+  override def onStart() = {
+    super.onStart()
     taskTable.open()
+  }
+
+  override def onStop() = {
+    super.onStop()
+    timer.cancel()
   }
 
   def initSyncButton(listView: ListView, id: Int) = findButton(id).setOnClickListener(onClickListener(synchronizeButtonHandler))
 
   def synchronizeButtonHandler(view: View): Unit = {
-    def findTask(task: Task): Option[Task] = Tasks.adapter(this).allTasks.find(_.created_at == task.created_at)
-
-    def getTasks(tasks: Collection) = {
-      Log.i("-------------------------- get from server -----------------------------------")
-      // get tasks from server
-      for (item <- tasks.items.flatten) {
-        val taskParams =
-          for (data <- item.data.flatten; value <- data.value; name = data.name)
-            yield (name, value): (String, Any)
-
-        val task = Task.deserialize(taskParams)
-
-
-        val dbTask = findTask(task)
-        if (dbTask.isEmpty) { // task from server not present in db
-          Log.i(task.title + " with ctime " + task.created_at.completeFormat + " not present in the db, inserting")
-          taskTable.insert(task)
-        } else {
-          if (task.updated_at.getMillis > dbTask.get.updated_at.getMillis) { // newer task from server
-            Log.i(task.title + " with ctime " + task.created_at.completeFormat + " found in db, server one is newer, updating")
-            taskTable.update(task)
-          } else {
-            Log.i(task.title + " with ctime " + task.created_at.completeFormat + " found in db, server one is older")
-          }
-        }
-
+    val listener = (c: Credentials) => {
+      if (Tasks.checkCredentials(c)) {
+        Tasks.synchronize(c)
       }
     }
 
-    def sendTasks(tasks: Collection, username: String, password: String) = {
-      Log.i("-------------------------- send to server -----------------------------------")
-      // send tasks to server
-      val expectedParams = tasks.template.get.map(_.name)
-      val adapter = Tasks.adapter(this)
-
-      adapter.allTasks.foreach((task: Task) => {
-        Log.i("sent " + task.toJSON(List()) + " to server")
-        val json = task.toJSON(expectedParams)
-        Collection.postJSON(tasks.href, username, password, json)
-      })
-    }
-
-    val username = "juliusz.gonera@gmail.com"
-    val password = "testtest"
-    try {
-      val collection = Collection("http://polar-scrubland-5755.herokuapp.com/", username, password)
-      // val collection = Collection("http://192.168.0.13:3000", username, password)
-
-      for (links <- collection.links; taskLink <- links if taskLink.rel == "tasks" ) {
-        val collection = Collection(taskLink.href, username, password)
-
-        getTasks(collection)
-        sendTasks(collection, username, password)
+    // show dialog if credentials not already present
+    Credentials.get(this) match {
+      case Some(credentials) => {
+        Log.i("Using existing credentials " + credentials.toString)
+        listener(credentials)
       }
-    } catch {
-      case e: java.net.UnknownHostException => Util.pr(this, "No connection")
+      case None => {
+        val dialog = new LoginDialog(this, listener)
+        dialog.show(getSupportFragmentManager(), "login-dialog")
+      }
     }
   }
 }

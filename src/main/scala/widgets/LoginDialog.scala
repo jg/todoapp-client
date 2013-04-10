@@ -1,4 +1,4 @@
-package com.android.todoapp;
+package com.android.todoapp
 
 import android.app.AlertDialog
 import android.content.DialogInterface.OnClickListener
@@ -13,42 +13,30 @@ import android.widget.CalendarView
 import android.view.View
 import android.support.v4.app.FragmentTransaction
 import android.support.v4.app.FragmentManager
+import android.widget.EditText
 
-class DatePickerDialog(context: Context, prompt: String, listener: (Option[Date]) => Unit)
-  extends DialogFragment
-  with SelectionAccess[Date] {
+class LoginDialog(context: Context, listener: (Credentials) => Any)
+  extends DialogFragment {
   var view: Option[View] = None
 
   def inflater: LayoutInflater = context.getSystemService(Context.LAYOUT_INFLATER_SERVICE).asInstanceOf[LayoutInflater]
 
-  def calendarView: Option[CalendarView] = view match {
-    case Some(view) => Some(view.findViewById(R.id.calendar).asInstanceOf[CalendarView])
-    case None => None
-  }
+  def username: String = view.get.findViewById(R.id.username).asInstanceOf[EditText].getText().toString
 
-  def setDate(date: Date) = {
-    for (cv <- calendarView) cv.setDate(date.getMillis)
-    setSelection(date)
-  }
+  def password: String = view.get.findViewById(R.id.password).asInstanceOf[EditText].getText().toString
 
   override def onCreateDialog(savedInstanceState: Bundle): Dialog = {
     val builder = new AlertDialog.Builder(context)
-    view = Some(inflater.inflate(R.layout.date_picker, null))
-    if (hasSelection) setDate(selection.get)
+    view = Some(inflater.inflate(R.layout.login_dialog, null))
+
     builder.setView(view.get)
-           .setPositiveButton("Pick", new DialogInterface.OnClickListener() {
-             override def onClick(dialog: DialogInterface, id: Int) {
-              for (calendarView <- calendarView) {
-                 val date = Date.fromMillis(calendarView.getDate())
-                 setSelection(date)
-                 listener(Some(date))
-               }
-             }
+           .setPositiveButton("Login", new DialogInterface.OnClickListener() {
+             override def onClick(dialog: DialogInterface, id: Int) =
+              listener(Credentials(username, password))
            })
            .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                override def onClick(dialog: DialogInterface, id: Int) {
-                 DatePickerDialog.this.getDialog().cancel();
-                 listener(None)
+                 LoginDialog.this.getDialog().cancel();
                }
            })
 
