@@ -86,7 +86,7 @@ class NewTaskForm(view: View, resources: Resources, fragmentManager: FragmentMan
       if (timeSelectionDialog.hasSelection)
         task.due_time.set(timeSelectionDialog.selection.get)
       if (repeatSelectionDialog.hasSelection)
-        task.repeat.set(RepeatPattern(repeatSelectionDialog.selection.get).get)
+        task.repeat.set(RepeatPattern(repeatSelectionDialog.selection.get))
 
       task.save()
       Util.pr(context, "New Task Added")

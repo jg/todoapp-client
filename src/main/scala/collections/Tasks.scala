@@ -28,12 +28,13 @@ object Tasks {
     Log.i("-------------------------- get from server -----------------------------------")
     // get tasks from server
     for (item <- tasks.items.flatten) {
+
+      // list of task parameters provided by the API
       val taskParams =
         for (data <- item.data.flatten; value <- data.value; name = data.name)
-          yield (name, value): (String, Any)
+          yield (name, value): (String, String)
 
       val task = Task.deserialize(taskParams)
-
 
       val dbTask = findTask(task)
       if (dbTask.isEmpty) { // task from server not present in db

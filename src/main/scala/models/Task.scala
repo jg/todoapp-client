@@ -54,12 +54,12 @@ trait TaskProperties {
   }
 
   // construct a task from key value pairs, used in fromJSON
-  def deserialize(lst: Iterable[(String, Any)])(implicit context: Context): Task = {
+  def deserialize(lst: Iterable[(String, String)])(implicit context: Context): Task = {
     val task = new Task()
     lst.foreach(_ match {
       case (propertyName, value) => {
         task.propertyWithName(propertyName) match {
-          case Some(property) => property.setFromAny(value)
+          case Some(property) => property.setFromString(value)
           case None => // nothing to do here
         }
       }
