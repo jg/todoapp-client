@@ -57,19 +57,20 @@ trait TaskProperties {
   def deserialize(lst: Iterable[(String, Any)])(implicit context: Context): Task = {
     val task = new Task()
     lst.foreach(_ match {
-      case (propertyName, value) => task.propertyWithName(propertyName).setFromAny(value)
+      case (propertyName, value) => {
+        task.propertyWithName(propertyName) match {
+          case Some(property) => property.setFromAny(value)
+          case None => // nothing to do here
+        }
+      }
       case _ => throw new Exception("Something is horribly wrong here...")
     })
 
     task
   }
 
-  def propertyWithName(name: String): Property[_] = {
-    properties.find(_.name == name) match {
-      case Some(p) => p
-      case None => throw new Exception("No such property: " + name)
-    }
-  }
+  def propertyWithName(name: String): Option[Property[_]] =
+    properties.find(_.name == name)
 
   // TODO: extract this into separate class
   def toJSON(expectedParams: List[String])(implicit context: Context) = {
