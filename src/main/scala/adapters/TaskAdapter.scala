@@ -1,5 +1,6 @@
 package com.android.todoapp
 
+import android.database.sqlite.SQLiteDatabase
 import android.content.Context
 import android.widget.{TextView, CheckBox, FilterQueryProvider, CursorAdapter, CompoundButton}
 import android.database.Cursor
@@ -10,31 +11,33 @@ import android.graphics.Color
 import com.android.todoapp.Utils._
 import android.widget.Toast
 import android.graphics.Paint
-
-object TaskAdapter {
-  var adapter: Option[TaskAdapter] = None
-
-  def apply(context: Context, cursor: Cursor): TaskAdapter = {
-    if (adapter.isEmpty) adapter = Some(new TaskAdapter(context, cursor))
-    adapter.get
-  }
-}
+import android.os.Handler
 
 class DBQuery(queryGenerator: () => String) {
   def toSQL = queryGenerator()
 }
 object DBQuery { def apply(f: () => String) = new DBQuery(f)}
 
-class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(context, cursor) {
-  val taskTable = TaskTable(context)
+object TaskAdapter {
+  private[this] var taskAdapter: Option[TaskAdapter] = None
+  def apply(context: Context, cursor: Cursor): TaskAdapter = taskAdapter match {
+    case Some(adapter) => adapter
+    case None => {
+      taskAdapter = Some(new TaskAdapter(context, cursor))
+      taskAdapter.get
+    }
+  }
+}
 
+class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(context, cursor, true) with Refreshable {
+  import PropertyConversions._
+  val taskTable = new TaskTable()
   var checkBoxStateChangeHandler: Option[(CompoundButton, Boolean) => Unit] = None
   var taskClickHandler: Option[(Int) => Unit] = None
-
   // var currentQuery: Option[String] = None
   var currentQuery: DBQuery = DBQuery(() => defaultQuery)
-
   var isShowingCompletedTasks = false
+  implicit val c: Context = context
 
   def showIncompleteTasks() = {
     isShowingCompletedTasks = false
@@ -67,7 +70,7 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
     case false => "where " + postponeWhereClause + "and" + completedTasksWhere + " "
   }
 
-  def selection = "select * from tasks "
+  def selection = "select tasks.*, task_lists.name as task_list from tasks inner join task_lists on task_lists._id = tasks.task_list_id "
 
   def showTasksDueToday() = {
     currentQuery = DBQuery(() =>
@@ -94,48 +97,33 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
     filterWithCurrentQuery()
   }
 
-  def filterWithCurrentQuery() = {
+  def filterWithCurrentQuery() =
     filter(currentQuery.toSQL)
-    Log.i(currentQuery.toSQL)
-  }
 
   def getTask(i: Integer): Task = Task.fromCursor(getItem(i).asInstanceOf[Cursor])
 
-  def allTasks: Seq[Task] = {
-    // val cursor = taskTable.db.rawQuery("select * from tasks", null)
-    val cursor = taskTable.db.query("tasks", null, null, null, null, null, null, null)
-    val lst = scala.collection.mutable.ListBuffer.empty[Task]
-
-    if (cursor.getCount() > 0) {
-      cursor.moveToFirst()
-      while (!cursor.isAfterLast()) {
-        lst += Task.fromCursor(cursor)
-        cursor.moveToNext()
-      }
-
-    }
-    cursor.close()
-    lst.toList
-  }
+  def allTasks = taskTable.all
 
   def registerCheckBoxStateChangeHandler(f: (CompoundButton, Boolean) => Unit) = checkBoxStateChangeHandler = Some(f)
   def registerTaskClickHandler(f: (Int) => Unit) = taskClickHandler = Some(f)
 
   override def bindView(view: View, context: Context, cursor: Cursor) {
     val task = Task.fromCursor(cursor)
+    // Log.i(task.toJSON(List()))
+    val taskTitle = view.findViewById(R.id.taskTitle).asInstanceOf[TextView]
+    lazy val taskId = view.findViewById(R.id.taskId).asInstanceOf[TextView]
 
     def setTaskPriority(): Unit = {
       val v = view.findViewById(R.id.taskPriority)
 
-      if (!task.priority.isEmpty) {
-        task.priority.toString match {
-          case "high" => v.setBackgroundColor(Color.RED)
-          case "low"  => v.setBackgroundColor(Color.BLUE)
-          case _      => v.setBackgroundColor(Color.BLACK)
-        }
-      } else {
+      val priority: Priority = task.priority.get
+
+      if (priority.equals(Priority.High))
+        v.setBackgroundColor(Color.RED)
+      else if (priority.equals(Priority.Low))
+        v.setBackgroundColor(Color.BLUE)
+      else
         v.setBackgroundColor(Color.BLACK)
-      }
     }
 
     def dateView = view.findViewById(R.id.dueDate).asInstanceOf[TextView]
@@ -158,10 +146,12 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
     }
 
     def setTaskClickListener() = {
-      val v = view.findViewById(R.id.taskTitle)
-      val position = cursor.getPosition()
+      val v = view.findViewById(R.id.taskTitle).asInstanceOf[TextView]
       v.setOnClickListener((v: View) =>
-        for (handler <- taskClickHandler) handler(position))
+        for (handler <- taskClickHandler) {
+          val id = taskId.getText().toString.toInt
+          handler(id)
+        })
     }
 
     def setTaskCheckboxToggleListener() = {
@@ -170,37 +160,52 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
         (buttonView: CompoundButton, isChecked: Boolean) => {
           for (handler <- checkBoxStateChangeHandler) handler(buttonView, isChecked)
         }
-        )
+      )
     }
 
-    def setTaskTitle() = taskTitle.setText(task.title)
+    def setTaskTitle() = taskTitle.setText(task.title.get)
 
-    def taskTitle = view.findViewById(R.id.taskTitle).asInstanceOf[TextView]
+    def setTaskDueDate() = {
+      if (task.isCompleted)
+        setDate(task.completed_at)
+      else {
+        if (task.postpone.isDefined) {
+          val hourDifference =
+                task.updated_at.get.addPeriod(task.postpone.get).hourDifference(Date.now)
+          if (hourDifference != 0) {
+            dateView.setText("postponed for " + hourDifference.toString + " hours")
+          } else {
+            val minuteDifference =
+              task.updated_at.get.addPeriod(task.postpone.get).minuteDifference(Date.now)
+            dateView.setText("postponed for " + minuteDifference.toString + " minutes")
+          }
+        } else if (task.due_date.isDefined) {
+          setDate(task.due_date)
+        } else {
+          dateView.setText("")
+        }
+      }
+    }
 
+    def setTaskPaintFlags() = {
+      if (task.isCompleted)
+        taskTitle.setPaintFlags(taskTitle.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG)
+      else
+        taskTitle.setPaintFlags(taskTitle.getPaintFlags() & (~ Paint.STRIKE_THRU_TEXT_FLAG))
+    }
+
+    def setTaskId() = {
+      taskId.setText(task.id.get.toString)
+    }
+
+    setTaskId()
     setTaskTitle()
     setTaskPriority()
     setTaskList()
     setTaskClickListener()
     setTaskCheckboxToggleListener()
-
-    if (task.isCompleted) {
-      taskTitle.setPaintFlags(taskTitle.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG)
-      setDate(task.completed_at)
-    } else if (task.due_date.isDefined) {
-      setDate(task.due_date)
-      taskTitle.setPaintFlags(0)
-    } else if (task.postpone.isDefined) {
-      val hourDifference =
-            task.updated_at.addPeriod(task.postpone.get).hourDifference(Date.now)
-      if (hourDifference != 0)
-        dateView.setText("postponed for " + hourDifference.toString + " hours")
-      else {
-        val minuteDifference =
-          task.updated_at.addPeriod(task.postpone.get).minuteDifference(Date.now)
-        dateView.setText("postponed for " + minuteDifference.toString + " minutes")
-      }
-    } else
-      dateView.setText("")
+    setTaskDueDate()
+    setTaskPaintFlags()
   }
 
   override def newView(context: Context, cursor: Cursor, parent: ViewGroup): View = {
@@ -211,17 +216,18 @@ class TaskAdapter(context: Context, cursor: Cursor) extends CursorAdapter(contex
     v
   }
 
-  private def columnIndex(fieldName: String) = Task.columnIndex(fieldName)
-
   private def pr(s: String) = Toast.makeText(context, s, Toast.LENGTH_SHORT).show();
 
-  private def ordering = " order by due_date asc, priority desc"
+  private def ordering = " order by priority desc, due_date asc"
 
   private def filter(query: String) = {
-    setFilterQueryProvider((_:CharSequence) =>
-      taskTable.db.rawQuery(query, null))
-    getFilter().filter("")
-    Tasks.refresh(context)
+    val cursor = DBHelper.getDB(context).rawQuery(query, null)
+    changeCursor(cursor)
+    notifyDataSetChanged()
+  }
+
+  def refresh() = {
+    filter(currentQuery.toSQL)
   }
 
 }

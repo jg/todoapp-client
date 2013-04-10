@@ -1,116 +1,131 @@
 package com.android.todoapp
 
 import android.app.Activity
-import android.os.Bundle
-import android.view.{View, LayoutInflater, KeyEvent}
-import android.widget.{Toast, ListView, Button, AdapterView, TextView, CheckedTextView, TabHost, CompoundButton}
-import android.widget.TabHost.TabContentFactory
-import android.widget.AdapterView.{OnItemClickListener, OnItemSelectedListener}
-import android.content.{Intent, Context}
-import collection.JavaConversions._
-import android.util.SparseBooleanArray
-import android.widget.ArrayAdapter
-import android.os.IBinder
-import android.support.v4.app.DialogFragment
-import android.support.v4.app.FragmentActivity
-import android.widget.AbsListView
+import android.app.ProgressDialog
 import android.content.DialogInterface
 import android.content.DialogInterface.OnClickListener
+import android.content.{Intent, Context, SharedPreferences}
+import android.os.{Bundle, Handler, IBinder}
+import android.support.v4.app.{DialogFragment, FragmentActivity, FragmentManager}
+import android.util.SparseBooleanArray
+import android.view.{Menu, MenuItem, View, LayoutInflater, KeyEvent}
+import android.widget.AdapterView.{OnItemClickListener, OnItemSelectedListener}
+import android.widget.TabHost.TabContentFactory
+import android.widget.{AbsListView, ArrayAdapter, Toast, ListView, Button, AdapterView, TextView, CheckedTextView, TabHost, CompoundButton}
+import collection.JavaConversions._
 import com.android.todoapp.Implicits._
 import com.android.todoapp.Utils._
+import java.lang.CharSequence
 import java.net.UnknownHostException
 import java.util.{Timer, TimerTask}
-import android.app.ProgressDialog
-import android.os.Handler
+import android.database.sqlite.SQLiteDatabase
+import android.database.sqlite.SQLiteOpenHelper
 
-import android.content.SharedPreferences
-
-class MainActivity extends FragmentActivity with TypedActivity with ActivityExtensions {
-  implicit val context: Context   = this
-  var taskList: TaskListView = _
-
-  var newTaskForm: NewTaskForm = _
+class MainActivity extends FragmentActivity with TypedActivity with ActivityExtensions with Refreshable {
+  var newTaskForm: NewTaskForm     = _
   var commandButton: CommandButton = _
-  implicit val taskTable = TaskTable(this)
-  var timer: Timer = new Timer()
-  var handler: Handler = _
+  var timer: Timer                 = new Timer()
+  var handler: Handler             = _
+  var taskList: TaskListView       = null
+  var adapter: TaskAdapter         = null
+  implicit lazy val c: Activity with Refreshable = this
+  lazy val currentTaskListSpinner = new CurrentTaskListSpinner(findViewById(R.id.current_task_list).asInstanceOf[Spinner], taskListChangeListener)
+
+  lazy val postponePeriodSelectionDialog: PickerDialog = {
+    val choices = List(TenSeconds, Hour, FourHours, SixHours, Day).map(_.toString).toArray[String]
+    val listener = (selection: String) => {
+      val items = taskList.checkedItems
+      items.foreach((task: Task) => {
+        task.setPostpone(Period(selection).get)
+        task.save()
+      })
+      taskList.unCheckAllItems()
+      Util.pr(context, "Postponed " + items.size + " tasks")
+    }
+    new PickerDialog(context, choices.asInstanceOf[Array[CharSequence]], listener)
+  }
 
   override def onCreate(bundle: Bundle) {
-    taskTable.open()
-
     super.onCreate(bundle)
     setContentView(R.layout.main)
+    val container = findViewById(R.id.container)
+    handler = new Handler()
+
+    // Init TaskAdapter
+    adapter = new TaskAdapter(this, DBHelper.getDB(this).rawQuery("select * from tasks", null))
+
+    adapter.registerTaskClickHandler((taskId: Int) =>  {
+      val intent = new Intent(context, classOf[TaskEditActivity])
+      intent.putExtra("taskId", taskId);
+      context.startActivity(intent)
+    })
 
     // Init widgets
-    taskList = new TaskListView(context, findViewById(R.id.taskList).asInstanceOf[ListView])
 
-    val container = findViewById(R.id.container)
-    new Tabs(this, container)
+    // TaskListView
+    taskList = new TaskListView(this, findViewById(R.id.taskList).asInstanceOf[ListView], adapter)
 
-    val currentTaskListSpinner = findViewById(R.id.current_task_list).asInstanceOf[CurrentTaskListSpinner]
-    newTaskForm = new NewTaskForm(this, container, getResources(), getSupportFragmentManager(), currentTaskListSpinner)
-    commandButton = new CommandButton(context, container, taskList, R.id.commandButton)
-    new PostponeButton(context, findButton(R.id.postponeButton),  getSupportFragmentManager(), taskList)
+    // Tabs
+    val tabListener = (tab: Tab) => {
+      tab match {
+        case incompleteTasksTab() => adapter.showIncompleteTasks()
+        case completedTasksTab() => adapter.showCompletedTasks()
+      }
+      refresh()
+    }
+    new Tabs(container, tabListener)
 
-    val adapter = Tasks.adapter(context)
+    // NewTaskForm
+    newTaskForm = new NewTaskForm(container, getResources(), getSupportFragmentManager())
+
+    // CommandButton
+    commandButton = new CommandButton(container, taskList, R.id.commandButton, () => refresh())
     adapter.registerCheckBoxStateChangeHandler((buttonView: CompoundButton, isChecked: Boolean) =>
       commandButton.init(R.id.commandButton))
 
-    // sync button
+    // SyncButton
     findButton(R.id.synchronizeButton).setOnClickListener((view: View) => synchronizeButtonHandler(view))
 
-    handler = new Handler()
   }
+
+  def refresh() = adapter.filterWithCurrentQuery()
 
   def setupTimer() = {
     timer = new Timer()
-    val timerTask = new RestoreRepeatingPostponedTasks(this, Tasks.adapter(this))
-    timer.schedule(timerTask, 1000, 1000)
+    val timerTask = new RestoreRepeatingPostponedTasks(this, Tasks.adapter)
+    timer.schedule(timerTask, 1000, 5000)
   }
 
   class RestoreRepeatingPostponedTasks(context: Context, taskAdapter: TaskAdapter) extends TimerTask {
-    def restorePostponedTasks(tasks: Seq[Task]) = { // restore postponed tasks that are ready
-      val readyTasks = tasks.filter((t: Task) => t.isPostponeOver)
-      val readyCount = readyTasks.size
-      readyTasks.foreach((t: Task) => {
-        t.resetPostpone()
-        t.save(context)
-      })
-
-      if (readyCount > 0)
-        Util.pr(context, "Restored " + readyCount.toString + " tasks from postponed state")
-    }
-
-    def restoreRepeatingTasks(tasks: Seq[Task]) = { // restore repeating tasks that are ready
-      val readyTasks = tasks.filter((t: Task) => t.isReadyToRepeat)
-      val readyCount = readyTasks.size
-      readyTasks.foreach((t: Task) => {
-        t.repeatTask()
-        Log.i(t.toJSON(List()))
-        t.save(context)
-      })
-
-      if (readyCount > 0)
-        Util.pr(context, "Restored " + readyCount.toString + " recurring tasks from completed state")
-    }
-
     def run() = {
       handler.post(new Runnable() {
         override def run() {
-          val tasks = taskAdapter.allTasks
-
-          restorePostponedTasks(tasks)
-          restoreRepeatingTasks(tasks)
+          Tasks.restorePostponed()
+          Tasks.restoreRepeating()
+          refresh()
         }
       })
     }
   }
+
+  def taskListChangeListener = (choice: TaskListRestriction) => {
+    choice match {
+      case FilterToday => adapter.showTasksDueToday()
+      case FilterThisWeek => adapter.showTasksDueThisWeek()
+      case TaskList(list) => adapter.showTasksInList(list)
+      case _ => ()
+    }
+    refresh()
+  }
+
 
   override def onBackPressed() = newTaskForm.hide()
 
   override def onResume() = {
     super.onResume()
     setupTimer()
+    // taskLists may have changed in the meantime eg in TaskListActivity
+    currentTaskListSpinner.init()
   }
 
   override def onPause() = {
@@ -118,14 +133,10 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
     timer.cancel()
   }
 
-  override def onStart() = {
-    super.onStart()
-    taskTable.open()
-  }
-
   override def onStop() = {
     super.onStop()
     timer.cancel()
+    DBHelper.getDB(this).close()
   }
 
   def initSyncButton(listView: ListView, id: Int) = findButton(id).setOnClickListener(onClickListener(synchronizeButtonHandler))
@@ -149,4 +160,30 @@ class MainActivity extends FragmentActivity with TypedActivity with ActivityExte
       }
     }
   }
+
+  override def onCreateOptionsMenu(menu: Menu): Boolean = {
+    val inflater = getMenuInflater();
+    inflater.inflate(R.menu.menu, menu);
+    true
+  }
+
+  override def onOptionsItemSelected(item: MenuItem): Boolean = {
+    item.getItemId() match {
+      case R.id.lists => {
+        startActivity(new Intent(this, classOf[TaskListActivity]))
+        true
+      }
+      case R.id.postpone => {
+        if (taskList.checkedItemCount > 0)
+          postponePeriodSelectionDialog.show(getSupportFragmentManager(), "postpone-selection")
+        else Util.pr(context, "No tasks selected")
+        true
+      }
+      case _ => {
+        Util.pr(this, "Default")
+        true
+      }
+    }
+  }
+
 }

@@ -8,40 +8,49 @@ import android.database.Cursor
 import scala.collection.mutable.LinkedHashMap
 import android.database.CursorIndexOutOfBoundsException
 
-
-object TaskTable {
-  var taskTable: Option[TaskTable] = None
-
-  def apply(context: Context): TaskTable = {
-    if (taskTable.isEmpty) taskTable = Some(new TaskTable(context))
-    taskTable.get
+object DBHelper {
+  var dbHelper: Option[DBHelper] = None
+  def getDB(context: Context): SQLiteDatabase = dbHelper match {
+    case Some(dbh) => dbh.open()
+    case None => {
+      dbHelper = Some(new DBHelper(context))
+      dbHelper.get.open()
+    }
   }
 }
 
-class TaskTable(context: Context) extends SQLiteOpenHelper(context, "todo", null, 56) {
+class DBHelper(context: Context) extends SQLiteOpenHelper(context, "todo", null, App.DbVersion) {
   var db: SQLiteDatabase = null
+  val tableObjects = List[DBModel](Task, TaskList)
+  implicit val c: Context = context
 
   override def onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) = {
-    val q = List("drop table if exists", tableName).mkString(" ")
-    db.execSQL(q)
+    // drop them tables
+    tableObjects.foreach((m: DBModel) => {
+      val q = m.tableDropStatement
+      Log.i(q)
+      db.execSQL(q)
+    })
+
     onCreate(db)
   }
 
   override def onCreate(db: SQLiteDatabase) = {
-    val q = List("create table", tableName, "(", Task.toSQL(), ")").mkString(" ")
-    db.execSQL(q)
+    tableObjects.foreach((m: DBModel) => {
+      val q = m.tableCreateStatement
+      Log.i(q)
+      db.execSQL(q)
+    })
+
+    // seed
+    TaskList.defaultTaskLists.foreach((name: String) =>
+      db.insert("task_lists", null, TaskList(name).contentValues())
+    )
   }
 
-  def open() = db = getWritableDatabase()
-
-  def insert(task: Task) = db.insert("tasks", null, task.contentValues())
-
-  def tableName = "tasks"
-
-  def update(task: Task): Int = {
-    val whereArgs: Array[String] = Array(task.created_at.completeFormat);
-    db.update("tasks", task.contentValues(), "created_at = ?", whereArgs)
+  def open(): SQLiteDatabase = {
+    db = getWritableDatabase()
+    db
   }
 
-  def cursor: Cursor = db.query("tasks", null, null, null, null, null, null)
 }

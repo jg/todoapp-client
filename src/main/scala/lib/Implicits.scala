@@ -19,18 +19,18 @@ object Implicits {
     }
   }
 
-  implicit def LambdaToOnClickListener(f: (View) => Unit) = new View.OnClickListener() {
+  implicit def LambdaToOnClickListener(f: (View) => Any) = new View.OnClickListener() {
     def onClick(v: View) = f(v)
   }
 
-  implicit def LambdaToOnItemSelectedListener(f: (AdapterView[_], View, Int, Long) => Unit) = new AdapterView.OnItemSelectedListener() {
+  implicit def LambdaToOnItemSelectedListener(f: (AdapterView[_], View, Int, Long) => Any) = new AdapterView.OnItemSelectedListener() {
     def onItemSelected(parent: AdapterView[_], view: View, position: Int, id: Long) = 
       f(parent, view, position, id)
 
     def onNothingSelected(parent: AdapterView[_]) {}
   }
 
-  implicit def LambdaToOnCheckedChangeListener(f: (CompoundButton, Boolean) => Unit) = new OnCheckedChangeListener() {
+  implicit def LambdaToOnCheckedChangeListener(f: (CompoundButton, Boolean) => Any) = new OnCheckedChangeListener() {
     def onCheckedChanged(buttonView: CompoundButton, isChecked: Boolean) = f(buttonView, isChecked)
   }
 

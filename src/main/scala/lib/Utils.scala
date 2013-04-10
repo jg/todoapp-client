@@ -6,6 +6,7 @@ import android.view.{View, KeyEvent}
 import android.view.inputmethod.InputMethodManager
 import android.content.Context
 import android.os.IBinder
+import android.database.sqlite.SQLiteDatabase
 
 trait Finders extends Activity {
   def findSpinner(id: Int): Spinner = findViewById(id).asInstanceOf[Spinner]
@@ -13,20 +14,6 @@ trait Finders extends Activity {
   def findListView(id: Int) = findViewById(id).asInstanceOf[ListView]
   def findEditText(id: Int) = findViewById(id).asInstanceOf[EditText]
   def findTextView(id: Int) = findViewById(id).asInstanceOf[TextView]
-}
-
-trait ActivityExtensions extends Activity with Finders {
-  def showKeyboard() = {
-    val imm =  getSystemService(Context.INPUT_METHOD_SERVICE).asInstanceOf[InputMethodManager]
-    imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, 0)
-  }
-
-  def hideKeyboard(windowToken: IBinder) = {
-    val imm =  getSystemService(Context.INPUT_METHOD_SERVICE).asInstanceOf[InputMethodManager]
-    imm.hideSoftInputFromWindow(windowToken, 0);
-  }
-
-  def app = getApplicationContext.asInstanceOf[App]
 }
 
 object Utils {

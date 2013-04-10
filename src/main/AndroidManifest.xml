@@ -20,6 +20,7 @@
           </intent-filter>
       </activity>
       <activity android:label="TaskEditActivity" android:name=".TaskEditActivity"/>
+      <activity android:label="TaskListActivity" android:name=".TaskListActivity"/>
   </application>
 
   <uses-sdk android:minSdkVersion="8"/>
