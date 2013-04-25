@@ -79,7 +79,10 @@ object RepeatPattern {
   val patterns = periods.map(RepeatAfter(_)) ++ periods.map(RepeatEvery(_))
   val values: List[String] = List("Not Set") ++ patterns.map(_.toString)
 
-  def fromString(label: String): Option[RepeatPattern] = patterns.find(_.toString == label)
+  def fromString(label: String): RepeatPattern = patterns.find(_.toString == label) match {
+    case Some(pattern) => pattern
+    case None => throw new Exception("No such RepeatPattern: " + label)
+  }
   def apply(s: String) = fromString(s)
   def stringValues: Array[String] = values.toArray[String]
 }

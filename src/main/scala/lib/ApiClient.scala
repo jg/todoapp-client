@@ -29,7 +29,9 @@ class ApiClient(rootUrl: String, userName: String, password: String) {
   def getTasks()(implicit c: Context): List[Task] = {
     for (taskItem <- taskCollection.get.items.get)
       yield Task.deserialize(
-        for (dataItem <- taskItem.data.get) yield (dataItem.name, dataItem.value))
+        for (dataItem <- taskItem.data.get;
+             value <- dataItem.value) yield (dataItem.name, value)
+        )
   }
 
   def putTasks = {

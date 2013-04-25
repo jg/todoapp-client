@@ -10,6 +10,8 @@ trait PropertySerializer[T] {
 
   def serialize(x: T): String
 
+  def deserialize(x: String): T
+
   def fromCursor(c: Cursor, pos: Integer): Option[T] = {
     if (c.isNull(pos))
       None
@@ -24,7 +26,7 @@ trait PropertySerializer[T] {
 }
 
 // TODO: serializers should log unsuccessfull fromCursor calls
-object TypeSerializers { 
+object TypeSerializers {
   implicit object DatePropertySerializer extends PropertySerializer[Date] {
     def fromCursor_(c: Cursor, pos: Integer): Option[Date] = try {
       Some(Date(c.getString(pos)))
@@ -33,9 +35,11 @@ object TypeSerializers {
     }
 
     def addToContentValues(c: ContentValues, name: String, value: Date) =
-      c.put(name, value.completeFormat)
+      c.put(name, value.completeFormat: String)
 
     def serialize(x: Date): String = x.completeFormat
+
+    def deserialize(x: String): Date = Date(x)
   }
 
   implicit object LongPropertySerializer extends PropertySerializer[Long] {
@@ -51,6 +55,8 @@ object TypeSerializers {
       c.put(name, value: java.lang.Long)
 
     def serialize(x: Long): String = x.toString
+
+    def deserialize(x: String): Long = x.toInt
   }
 
   implicit object StringPropertySerializer extends PropertySerializer[String] {
@@ -64,6 +70,8 @@ object TypeSerializers {
       c.put(name, value)
 
     def serialize(x: String): String = x
+
+    def deserialize(x: String) = x
   }
 
   implicit object TimePropertySerializer extends PropertySerializer[Time] {
@@ -79,6 +87,8 @@ object TypeSerializers {
       c.put(name, value.toInt: Integer)
 
     def serialize(x: Time): String = x.toInt.toString
+
+    def deserialize(x: String): Time = Time.fromMinutes(x.toInt)
   }
 
   implicit object PriorityPropertySerializer extends PropertySerializer[Priority] {
@@ -92,12 +102,14 @@ object TypeSerializers {
       c.put(name, value.serialize: Integer)
 
     def serialize(x: Priority): String = x.serialize.toString
+
+    def deserialize(x: String): Priority = Priority.deserialize(x.toInt)
   }
 
-  implicit object RepeatPropertySerializer extends PropertySerializer[RepeatPattern] { 
+  implicit object RepeatPropertySerializer extends PropertySerializer[RepeatPattern] {
     // TODO: .get here looks weird, RepeatPattern should just throw an exception if someone provided garbage to the factory
     def fromCursor_(c: Cursor, pos: Integer): Option[RepeatPattern] = try {
-      Some(RepeatPattern(c.getString(pos)).get)
+      Some(RepeatPattern(c.getString(pos)))
     } catch {
       case e: Exception => None
     }
@@ -106,9 +118,12 @@ object TypeSerializers {
       c.put(name, value.toString)
 
     def serialize(x: RepeatPattern): String = x.toString
+
+    def deserialize(x: String): RepeatPattern =
+      RepeatPattern(x)
   }
 
-  implicit object PeriodPropertySerializer extends PropertySerializer[Period] { 
+  implicit object PeriodPropertySerializer extends PropertySerializer[Period] {
     // TODO: .get here looks weird, Period should just throw an exception if someone provided garbage to the factory
     def fromCursor_(c: Cursor, pos: Integer): Option[Period] = try {
       Some(Period(c.getString(pos)).get)
@@ -120,6 +135,8 @@ object TypeSerializers {
       c.put(name, value.toString)
 
     def serialize(x: Period): String = x.toString
+
+    def deserialize(x: String): Period = Period(x).get
   }
 }
 
@@ -132,8 +149,6 @@ object Property {
   // def deserialize(value: T): Property[T]
 
   def apply[T](name: String, value: Option[T])(implicit propertySerializer: PropertySerializer[T]) = new Property(name, value)
-  
-
 }
 
 class Property[T](val name: String, var value: Option[T])(implicit propertySerializer: PropertySerializer[T]) {
@@ -155,9 +170,8 @@ class Property[T](val name: String, var value: Option[T])(implicit propertySeria
     for (callback <- onSetCallback) callback(value)
   }
 
-  def setFromAny(x: Any) = {
-    val v: T = x.asInstanceOf[T]
-    value = Some(v)
+  def setFromString(x: String) = {
+    value = Some(propertySerializer.deserialize(x))
     for (callback <- onSetCallback) callback(value)
   }
 
@@ -176,7 +190,7 @@ class Property[T](val name: String, var value: Option[T])(implicit propertySeria
 
   def foreach(f: (T) => Unit): Unit = value.foreach(f)
 
-  def addToContentValues(c: ContentValues) = value match {
+  def addToContentValues(c: ContentValues): Unit = value match {
     case Some(v) => propertySerializer.addToContentValues(c, name, v)
     case None => c.putNull(name)
   }

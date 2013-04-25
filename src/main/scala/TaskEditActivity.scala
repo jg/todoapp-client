@@ -110,7 +110,7 @@ class TaskEditActivity extends FragmentActivity with ActivityExtensions {
         task.priority.set(taskPriority)
         task.title.set(taskTitle)
         task.task_list_id.set(taskListId)
-        task.repeat.setOpt(RepeatPattern(taskRepeat))
+        task.repeat.set(RepeatPattern(taskRepeat))
         task.due_date.setOpt(taskDueDate)
         task.due_time.setOpt(taskDueTime)
         task.save()
