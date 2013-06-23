@@ -63,6 +63,10 @@ case object Month extends Period {
     startDate.month == date.month
 }
 
+case object NoRepeat extends RepeatPattern {
+  override def toString = "Not Set"
+}
+
 abstract class RepeatPattern
 
 case class RepeatAfter(period: Period) extends RepeatPattern {
@@ -81,7 +85,7 @@ object RepeatPattern {
 
   def fromString(label: String): RepeatPattern = patterns.find(_.toString == label) match {
     case Some(pattern) => pattern
-    case None => throw new Exception("No such RepeatPattern: " + label)
+    case None => NoRepeat
   }
   def apply(s: String) = fromString(s)
   def stringValues: Array[String] = values.toArray[String]

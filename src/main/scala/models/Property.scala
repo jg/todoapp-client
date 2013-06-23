@@ -158,9 +158,9 @@ class Property[T](val name: String, var value: Option[T])(implicit propertySeria
   // TODO: int types should not be quoted
   def jsonKeyValue: String = {
     if (value.isDefined)
-      name + ": " + "\"" + propertySerializer.serialize(value.get) + "\""
+      "\"" + name + "\": " + "\"" + propertySerializer.serialize(value.get) + "\""
     else
-      name + ": \"null\""
+      "\"" + name + "\": \"null\""
   }
 
   def sqlType: String = propertySerializer.sqlType
