@@ -6,8 +6,9 @@ import android.support.v4.app.FragmentActivity
 import android.support.v4.app.FragmentManager
 import com.android.todoapp.Implicits._
 import java.lang.CharSequence
+import android.database.sqlite.SQLiteDatabase
 
-case class PostponeButton(context: Context, button: Button, fragmentManager: FragmentManager, taskListView: TaskListView) {
+case class PostponeButton(button: Button, fragmentManager: FragmentManager, taskListView: TaskListView)(implicit context: Context, db: SQLiteDatabase) {
   button.setOnClickListener((v: View) =>
     if (taskListView.checkedItemCount > 0)
       postponePeriodSelectionDialog.show(fragmentManager, "postpone-selection")
@@ -22,7 +23,7 @@ case class PostponeButton(context: Context, button: Button, fragmentManager: Fra
       val items = taskListView.checkedItems
       items.foreach((task: Task) => {
         task.setPostpone(postponePeriod)
-        task.save(context)
+        task.save()
       })
       taskListView.unCheckAllItems()
       Util.pr(context, "Postponed " + items.size + " tasks")

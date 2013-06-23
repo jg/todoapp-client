@@ -6,55 +6,53 @@ import android.widget.{ArrayAdapter, CursorAdapter, SimpleCursorAdapter}
 import android.database.Cursor
 import android.app.ProgressDialog
 import android.os.AsyncTask
+import android.database.sqlite.SQLiteDatabase
 
 object Tasks {
-  def adapter(context: Context): TaskAdapter = TaskAdapter(context, TaskTable(context).cursor)
-
-  def add(c: Context, task: Task) = {
-    task.id = TaskTable(c).insert(task)
-    refresh(c)
+  def adapter(implicit c: Context): TaskAdapter = {
+    implicit val conn: SQLiteDatabase = DBHelper.getDB(c)
+    TaskAdapter(c, TaskTable().cursor)
   }
 
-  def update(c: Context, task: Task) = {
-    TaskTable(c).update(task)
-    refresh(c)
-  }
+  def all(implicit context: Context): Seq[Task] = table.all
 
-  def refresh(c: Context) {
-    adapter(c).notifyDataSetChanged()
-    adapter(c).getFilter().filter("")
-  }
+  def findById(id: Long)(implicit c: Context): Option[Task] = all.find(_.id.get == id)
 
-  def findTask(task: Task)(implicit context: Context): Option[Task] = Tasks.adapter(context).allTasks.find(_.created_at == task.created_at)
+  private def table(implicit c: Context): TaskTable = TaskTable()
 
-  def getTasks(tasks: Collection)(implicit context: Context, taskTable: TaskTable) = {
+  def inList(list: String)(implicit c: Context): Seq[Task] = all.filter((task: Task) => task.task_list == list)
+
+  def findTask(task: Task)(implicit context: Context): Option[Task] = Tasks.adapter.allTasks.find(_.created_at.get == task.created_at.get)
+
+  def getTasks(tasks: Collection)(implicit context: Context) = {
     Log.i("-------------------------- get from server -----------------------------------")
     // get tasks from server
     for (item <- tasks.items.flatten) {
+
+      // list of task parameters provided by the API
       val taskParams =
         for (data <- item.data.flatten; value <- data.value; name = data.name)
-          yield (name, value): (String, Any)
+          yield (name, value): (String, String)
 
       val task = Task.deserialize(taskParams)
 
-
       val dbTask = findTask(task)
       if (dbTask.isEmpty) { // task from server not present in db
-        Log.i(task.title + " with ctime " + task.created_at.completeFormat + " not present in the db, inserting")
-        taskTable.insert(task)
+        Log.i(task.title + " with ctime " + task.created_at.get.completeFormat + " not present in the db, inserting")
+        TaskTable().insert(task)
       } else {
-        if (task.updated_at.getMillis > dbTask.get.updated_at.getMillis) { // newer task from server
-          Log.i(task.title + " with ctime " + task.created_at.completeFormat + " found in db, server one is newer, updating")
-          taskTable.update(task)
+        if (task.updated_at.get.getMillis > dbTask.get.updated_at.get.getMillis) { // newer task from server
+          Log.i(task.title + " with ctime " + task.created_at.get.completeFormat + " found in db, server one is newer, updating")
+          TaskTable().update(task)
         } else {
-          Log.i(task.title + " with ctime " + task.created_at.completeFormat + " found in db, server one is older")
+          Log.i(task.title + " with ctime " + task.created_at.get.completeFormat + " found in db, server one is older")
         }
       }
 
     }
   }
 
-  class CheckCredentialsTask(context: Context, taskTable: TaskTable) extends MyAsyncTask[Credentials, Void, Boolean] {
+  class CheckCredentialsTask(context: Context) extends MyAsyncTask[Credentials, Void, Boolean] {
     var progressDialog: ProgressDialog = _
     var credentials: Credentials = _
 
@@ -77,13 +75,12 @@ object Tasks {
     }
   }
 
-  class SynchronizeTask(context: Context, taskTable: TaskTable) extends MyAsyncTask[Credentials, Void, Void] {
+  class SynchronizeTask(context: Context) extends MyAsyncTask[Credentials, Void, Void] {
     var progressDialog: ProgressDialog = _
 
     override def doInBackground(c: Credentials): Void = {
       try {
         implicit val con: Context = context
-        implicit val t: TaskTable = taskTable
         val username = c.username
         val password = c.password
         val collection = Collection("http://polar-scrubland-5755.herokuapp.com/", username, password)
@@ -112,9 +109,8 @@ object Tasks {
     Log.i("-------------------------- send to server -----------------------------------")
     // send tasks to server
     val expectedParams = tasks.template.get.map(_.name)
-    val adapter = Tasks.adapter(context)
 
-    adapter.allTasks.foreach((task: Task) => {
+    Tasks.adapter.allTasks.foreach((task: Task) => {
       Log.i("sent " + task.toJSON(List()) + " to server")
       val json = task.toJSON(expectedParams)
       Collection.postJSON(tasks.href, username, password, json)
@@ -122,13 +118,40 @@ object Tasks {
   }
 
 
-  def checkCredentials(c: Credentials)(implicit context: Context, taskTable: TaskTable): Boolean = {
-    (new CheckCredentialsTask(context, taskTable)).execute(c).get()
+  def checkCredentials(c: Credentials)(implicit context: Context): Boolean = {
+    (new CheckCredentialsTask(context)).execute(c).get()
   }
 
-  def synchronize(c: Credentials)(implicit context: Context, taskTable: TaskTable) = {
-    (new SynchronizeTask(context, taskTable)).execute(c)
+  def synchronize(c: Credentials)(implicit context: Context) = {
+    (new SynchronizeTask(context)).execute(c)
   }
+
+  def restorePostponed()(implicit context: Context) = { // restore postponed tasks that are ready
+    val tasks = adapter.allTasks
+    val readyTasks = tasks.filter((t: Task) => t.isPostponeOver)
+    val readyCount = readyTasks.size
+    readyTasks.foreach((t: Task) => {
+      t.resetPostpone()
+      t.save()
+    })
+
+    if (readyCount > 0)
+      Util.pr(context, "Restored " + readyCount.toString + " tasks from postponed state")
+  }
+
+  def restoreRepeating()(implicit context: Context) = { // restore repeating tasks that are ready
+    val tasks = adapter.allTasks
+    val readyTasks = tasks.filter((t: Task) => t.isReadyToRepeat)
+    val readyCount = readyTasks.size
+    readyTasks.foreach((t: Task) => {
+      t.repeatTask()
+      t.save()
+    })
+
+    if (readyCount > 0)
+      Util.pr(context, "Restored " + readyCount.toString + " recurring tasks from completed state")
+  }
+
 
 
 }

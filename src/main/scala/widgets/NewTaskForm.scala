@@ -20,37 +20,26 @@ import android.content.DialogInterface.OnClickListener
 import com.android.todoapp.Implicits._
 import com.android.todoapp.Utils._
 
-class NewTaskForm(context: Context, view: View, resources: Resources, fragmentManager: FragmentManager, currentTaskListSpinner: CurrentTaskListSpinner) {
-
-  // buttons
-
+class NewTaskForm(view: View, resources: Resources, fragmentManager: FragmentManager)(implicit context: Context with Refreshable) {
   val priorityButton = findButton(R.id.priority)
   val dateButton     = findButton(R.id.date)
   val timeButton     = findButton(R.id.time)
   val repeatButton   = findButton(R.id.repeat)
 
-  val listener = (selection: Any) => { highlightButtonsWithSelection() }
+  val listener = (selection: Any) => { setButtonsHighlight() }
 
   lazy val prioritySelectionDialog: PickerDialog = {
     val priorities = resources.getStringArray(R.array.task_priorities)
     new PickerDialog(context, priorities.asInstanceOf[Array[CharSequence]], listener)
   }
-
-  lazy val dateSelectionDialog = {
-    new DatePickerDialog(context, "Date", listener)
-  }
-
-  lazy val timeSelectionDialog = {
-    new TimePickerDialog(context, listener)
-  }
-
-  lazy val repeatSelectionDialog = {
+  lazy val dateSelectionDialog = new DatePickerDialog(context, "Date", listener)
+  lazy val timeSelectionDialog = new TimePickerDialog(context, listener)
+  lazy val repeatSelectionDialog =
     new PickerDialog(context, RepeatPattern.stringValues.asInstanceOf[Array[CharSequence]], listener)
-  }
+  lazy val selectionDialogs =
+    List(prioritySelectionDialog, dateSelectionDialog, timeSelectionDialog, repeatSelectionDialog)
 
-  lazy val selectionDialogs = List(prioritySelectionDialog, dateSelectionDialog, timeSelectionDialog, repeatSelectionDialog)
-
-  def highlightButtonsWithSelection(): Unit = {
+  def setButtonsHighlight(): Unit = {
     val bgSelectedColor = 0xFF669900
 
     val buttonMap = Map((priorityButton, prioritySelectionDialog),
@@ -58,9 +47,7 @@ class NewTaskForm(context: Context, view: View, resources: Resources, fragmentMa
                         (timeButton, timeSelectionDialog),
                         (repeatButton, repeatSelectionDialog))
 
-    buttonMap.foreach{case (button, dialog) => {
-      if (dialog.hasSelection) button.setPressed(true)
-    }}
+    buttonMap.foreach{case (button, dialog) => button.setPressed(dialog.hasSelection)}
   }
 
 
@@ -82,33 +69,38 @@ class NewTaskForm(context: Context, view: View, resources: Resources, fragmentMa
   val input = findViewById(R.id.task_title_input).asInstanceOf[TextView]
   input.setOnEditorActionListener(onEditorActionListener(handleTaskTitleInputEnterKey))
 
-  def handleTaskTitleInputEnterKey(v: TextView, actionId: Int, event: KeyEvent) = {
+    def handleTaskTitleInputEnterKey(v: TextView, actionId: Int, event: KeyEvent) = {
     def addNewTask(title: String) = {
-      val task = new Task(title)
+      val task = new Task()
 
-      task.task_list = currentTaskListSpinner.selection.get match {
-        case FilterToday => "Inbox"
-        case FilterThisWeek => "Inbox"
-        case TaskList(list) => list
-      }
+      task.title.set(title)
+      task.setTaskList(TaskListRestrictions.current match {
+        case TaskListFilter() => TaskLists.Inbox.name
+        case TaskList(name) => name
+      })
+
       if (prioritySelectionDialog.hasSelection)
-        task.priority = Priority(prioritySelectionDialog.selection.get)
+        task.priority.set(Priority(prioritySelectionDialog.selection.get))
       if (dateSelectionDialog.hasSelection)
-        task.due_date = Some(dateSelectionDialog.selection.get)
+        task.due_date.set(dateSelectionDialog.selection.get)
       if (timeSelectionDialog.hasSelection)
-        task.due_time = Some(timeSelectionDialog.selection.get)
+        task.due_time.set(timeSelectionDialog.selection.get)
       if (repeatSelectionDialog.hasSelection)
-        task.repeat   = RepeatPattern(repeatSelectionDialog.selection.get)
+        task.repeat.set(RepeatPattern(repeatSelectionDialog.selection.get))
 
-      Tasks.add(context, task)
+      task.save()
       Util.pr(context, "New Task Added")
+      context.refresh()
     }
 
     val title = findViewById(R.id.task_title_input).asInstanceOf[TextView]
     if (title.length > 0)  {
       hide()
       addNewTask(title)
-      selectionDialogs.foreach(_.clearSelection()) // clear previous dialog selections
+      // clear previous dialog selections
+      selectionDialogs.foreach(_.clearSelection()) 
+      // clear button highlight
+      setButtonsHighlight()
     }
 
     true

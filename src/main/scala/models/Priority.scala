@@ -20,18 +20,31 @@ object Priority extends Enumeration {
   implicit def priority2string(d: Priority): String = d.toString
 
   def stringValues: Array[String] = values.toArray.map(_.toString)
+
+  def deserialize(priority: Int): Priority = priority match {
+    case 1 => new Priority(Priority.High)
+    case -1 => new Priority(Priority.Low)
+    case 0 => new Priority(Priority.Normal)
+  }
 }
 
 
 import Priority._
-class Priority(val name: PriorityValue) {
-  override def toString = name.toString
+class Priority(val value: PriorityValue) {
+  override def toString = value.toString
 
   override def equals(that: Any): Boolean = that match {
-    case that: PriorityValue => name == that
+    case that: PriorityValue => value == that
     case that: Priority => this == that
     case _ => false
   }
+
+  def serialize = value match {
+    case Priority.High => 1
+    case Priority.Low => -1
+    case _ => 0
+  }
+
 }
 
 

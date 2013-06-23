@@ -9,4 +9,3 @@ trait SelectionAccess[T] {
 
   def clearSelection() = selection = None
 }
-

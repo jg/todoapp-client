@@ -63,6 +63,10 @@ case object Month extends Period {
     startDate.month == date.month
 }
 
+case object NoRepeat extends RepeatPattern {
+  override def toString = "Not Set"
+}
+
 abstract class RepeatPattern
 
 case class RepeatAfter(period: Period) extends RepeatPattern {
@@ -79,7 +83,10 @@ object RepeatPattern {
   val patterns = periods.map(RepeatAfter(_)) ++ periods.map(RepeatEvery(_))
   val values: List[String] = List("Not Set") ++ patterns.map(_.toString)
 
-  def fromString(label: String): Option[RepeatPattern] = patterns.find(_.toString == label)
+  def fromString(label: String): RepeatPattern = patterns.find(_.toString == label) match {
+    case Some(pattern) => pattern
+    case None => NoRepeat
+  }
   def apply(s: String) = fromString(s)
   def stringValues: Array[String] = values.toArray[String]
 }

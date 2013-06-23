@@ -18,8 +18,9 @@ import android.content.DialogInterface
 import android.content.DialogInterface.OnClickListener
 import com.android.todoapp.Implicits._
 import com.android.todoapp.Utils._
+import android.database.sqlite.SQLiteDatabase
 
-class CommandButton(context: Context, view: View, taskList: TaskListView, id: Int) {
+class CommandButton(view: View, taskList: TaskListView, id: Int, refreshTaskList: () => Any)(implicit context: Context) {
   init(id)
 
   def init(id: Int) = {
@@ -28,11 +29,6 @@ class CommandButton(context: Context, view: View, taskList: TaskListView, id: In
     } else {
       initAddNewTaskButton(id)
     }
-  }
-
-  private def markTask(context: Context, task: Task) {
-    task.markAsCompleted()
-    task.save(context)
   }
 
   private def initAddNewTaskButton(id: Int) = {
@@ -50,8 +46,10 @@ class CommandButton(context: Context, view: View, taskList: TaskListView, id: In
   }
 
   private def markTaskAsCompleteHandler(clickedView: View) {
-    val items = taskList.checkedItems.map(markTask(context,  _))
-    Tasks.refresh(context)
+    val items = taskList.checkedItems.map((task: Task) => {
+      task.markAsCompleted()
+      task.save()
+    })
 
     if (items.length == 1)
       Util.pr(context, "task marked as completed")
@@ -60,6 +58,8 @@ class CommandButton(context: Context, view: View, taskList: TaskListView, id: In
 
     taskList.unCheckAllItems()
     init(R.id.commandButton)
+
+    refreshTaskList()
   }
 
   private def addNewTaskButtonHandler(clickedView: View) = {
